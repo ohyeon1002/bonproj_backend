@@ -51,6 +51,6 @@ def save_user_solved_many_qnas(odaps: ManyOdaps, current_user: User, db: Session
     return odaps
 
 
-def retrieve_user_saved_many_qnas(current_user: User, db: Session):
+def retrieve_many_user_saved_qnas(current_user: User, db: Session):
     assert current_user.id is not None
     return odapset_crud.read_many_odapsets(current_user.id, db)

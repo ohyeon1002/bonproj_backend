@@ -7,7 +7,7 @@ from ..database import get_db
 from ..services.odap import (
     save_user_solved_qna,
     save_user_solved_many_qnas,
-    retrieve_user_saved_many_qnas,
+    retrieve_many_user_saved_qnas,
 )
 from ..models import Odap, User
 
@@ -38,5 +38,5 @@ async def get_many_odaps(
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    odaps = retrieve_user_saved_many_qnas(current_user, db)
+    odaps = retrieve_many_user_saved_qnas(current_user, db)
     return [odap.odaps for odap in odaps]

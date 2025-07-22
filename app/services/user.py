@@ -81,6 +81,7 @@ def sign_google_user(id_token_jwt: Union[str, bytes], db: Session):
             {"sub": db_user.username}, access_token_expires
         )
         return access_token
-    except ValueError:
+    except ValueError as e:
+        print(e)
         db.rollback()
         raise HTTPException(status_code=401, detail="Invalid Google ID token")
