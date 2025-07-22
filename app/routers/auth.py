@@ -6,10 +6,10 @@ from fastapi.security import OAuth2PasswordRequestForm
 from sqlmodel import Session
 from ..core.config import settings
 from ..database import get_db
-from ..models import UserBase, User
+from ..models import User
 from ..services.user import register_one_user, sign_user_in, sign_google_user
 from ..dependencies import get_current_active_user
-from ..schemas import CreateUser, CreateUserResponse, Token
+from ..schemas import CreateUser, CreateUserResponse, Token, SignMeResponse
 
 
 router = APIRouter(prefix="/auth", tags=["Authentication"])
@@ -18,6 +18,7 @@ router = APIRouter(prefix="/auth", tags=["Authentication"])
 google_redirect_uri = settings.GOOGLE_REDIRECT_URI
 google_client_id = settings.GOOGLE_CLIENT_ID
 google_client_secret = settings.GOOGLE_CLIENT_SECRET
+frontend_redirect_uri = settings.FRONTEND_REDIRECT_URI
 
 
 @router.post("/signup", response_model=CreateUserResponse)
@@ -36,11 +37,15 @@ async def sign_user_in_for_access_token(
     return sign_user_in(form_data, db)
 
 
-@router.get("/sign/me", response_model=UserBase)
+@router.get("/sign/me", response_model=SignMeResponse)
 async def get_user_info(
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
-    return UserBase(username=current_user.username, indivname=current_user.indivname)
+    return SignMeResponse(
+        username=current_user.username,
+        indivname=current_user.indivname,
+        profile_img_url=current_user.profile_img_url,
+    )
 
 
 @router.get("/login/google")
@@ -76,4 +81,7 @@ def google_get_token(code: str) -> Union[str, bytes]:
 @router.get("/sign/google")
 async def auth_google_callback(code: str, db: Annotated[Session, Depends(get_db)]):
     id_token_jwt = google_get_token(code)
-    return sign_google_user(id_token_jwt, db)
+    access_token = sign_google_user(id_token_jwt, db)
+    return RedirectResponse(
+        f"{frontend_redirect_uri}/auth/sign/google?token={access_token}"
+    )

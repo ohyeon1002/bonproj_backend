@@ -46,6 +46,12 @@ class CreateUser(UserBase):
     password: str = Field(min_length=8)
 
 
+class SignMeResponse(BaseModel):
+    username: str
+    indivname: str
+    profile_img_url: Optional[str] = None
+
+
 class CreateUserResponse(BaseModel):
     email: str
     name: str

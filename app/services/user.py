@@ -7,7 +7,7 @@ from google.oauth2 import id_token
 from google.auth.transport import requests as google_requests
 from ..models import User
 from ..crud import user_crud
-from ..schemas import CreateUser, CreateUserResponse, Token
+from ..schemas import CreateUser, CreateUserResponse, Token, UserBase
 from ..core.security import pwd_context, ACCESS_TOKEN_EXPIRE_MINUTES
 from ..core.config import settings
 from ..utils import user_utils
@@ -65,16 +65,22 @@ def sign_google_user(id_token_jwt: Union[str, bytes], db: Session):
             google_client_id,
         )
         google_user = user_crud.read_one_google_user(idinfo["sub"], db)
-        if google_user is None:
+        if google_user is not None:
+            db_user = google_user
+        else:
             new_user = User(
                 indivname=idinfo["name"],
                 username=idinfo["email"],
                 google_sub=idinfo["sub"],
+                profile_img_url=idinfo["picture"],
             )
-            user_crud.create_one_google_user(new_user, db)
-        else:
-            pass
-        return {}
+            db_user = user_crud.create_one_google_user(new_user, db)
+            db.commit()
+        access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+        access_token = user_utils.create_access_token(
+            {"sub": db_user.username}, access_token_expires
+        )
+        return access_token
     except ValueError:
-        # ID 토큰이 유효하지 않은 경우
+        db.rollback()
         raise HTTPException(status_code=401, detail="Invalid Google ID token")
