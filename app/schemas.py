@@ -76,7 +76,7 @@ class UserSolvedQna(BaseModel):
 
 
 class OneOdap(BaseModel):
-    choice: OdapChoice
+    choice: Optional[OdapChoice]
     gichulqna_id: int
 
 

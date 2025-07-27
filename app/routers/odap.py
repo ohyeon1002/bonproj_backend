@@ -26,11 +26,11 @@ async def save_one_qna(
 
 @router.post("/savemany")
 async def save_many_qnas(
-    odaps: ManyOdaps,
+    submitted_qnas: ManyOdaps,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    return save_user_solved_many_qnas(odaps, current_user, db)
+    return save_user_solved_many_qnas(submitted_qnas, current_user, db)
 
 
 @router.get("/list")
