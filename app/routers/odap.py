@@ -38,5 +38,5 @@ async def get_many_odaps(
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    odaps = retrieve_many_user_saved_qnas(current_user, db)
-    return [odap.odaps for odap in odaps]
+    odaps_to_show = retrieve_many_user_saved_qnas(current_user, db)
+    return odaps_to_show

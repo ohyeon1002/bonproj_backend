@@ -1,7 +1,8 @@
+from datetime import datetime
 from typing import Optional, List, Literal, Dict
 from pydantic import BaseModel, EmailStr, ConfigDict
 from sqlmodel import SQLModel, Field
-from .models import GichulQnaBase, UserBase, OdapChoice
+from .models import GichulQnaBase, UserBase, OdapChoice, ExamType, GichulSubject
 
 
 # main.py
@@ -82,3 +83,39 @@ class OneOdap(BaseModel):
 class ManyOdaps(BaseModel):
     odapset_id: int
     odaps: List[OneOdap]
+
+
+class OdapsGot(BaseModel):
+    odapset_id: int
+    created_date: datetime
+    exam_type: ExamType
+    odaplist: List[OneOdap]
+
+
+# mypage
+
+
+class GichulQnaInOdap(SQLModel):
+    id: Optional[int]
+    subject: GichulSubject
+    qnum: Optional[int]
+    questionstr: Optional[str]
+    ex1str: Optional[str]
+    ex2str: Optional[str]
+    ex3str: Optional[str]
+    ex4str: Optional[str]
+    answer: Optional[str]
+    explanation: Optional[str]
+
+
+class OdapWithGichulQnaInOdapSet(SQLModel):
+    id: Optional[int]
+    choice: OdapChoice
+    gichul_qna: Optional[GichulQnaInOdap] = None
+
+
+class OdapSetWithOdap(SQLModel):
+    id: Optional[int]
+    examtype: ExamType
+    created_date: Optional[datetime]
+    odaps: List[OdapWithGichulQnaInOdapSet] = []
