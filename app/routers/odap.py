@@ -12,7 +12,7 @@ from ..services.odap import (
 from ..models import Odap, User
 
 
-router = APIRouter(prefix="/odap", tags=["Save gichul qnas"])
+router = APIRouter(prefix="/results", tags=["Save user-solved qnas"])
 
 
 @router.post("/save")
