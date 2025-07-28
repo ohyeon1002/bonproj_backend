@@ -1,6 +1,6 @@
 import enum
 from datetime import datetime
-from typing import List, Optional, ClassVar, Annotated
+from typing import List, Optional, ClassVar
 from sqlmodel import (
     SQLModel,
     Field,
@@ -9,7 +9,7 @@ from sqlmodel import (
     TIMESTAMP,
     Text,
 )
-from pydantic import EmailStr, ConfigDict
+from pydantic import EmailStr
 from sqlalchemy.sql import func
 from sqlalchemy import Column, Enum as SQLAlchemyEnum, Text
 
@@ -59,7 +59,7 @@ class ExamType(str, enum.Enum):
     cbt = "cbt"
 
 
-class OdapChoice(str, enum.Enum):
+class ExamChoice(str, enum.Enum):
     ex1 = "가"
     ex2 = "나"
     ex3 = "사"
@@ -68,16 +68,24 @@ class OdapChoice(str, enum.Enum):
 
 # SQLModel 정의
 class UserBase(SQLModel):
-    username: EmailStr = Field(max_length=45, unique=True, index=True)
-    indivname: str = Field(max_length=45)
+    username: EmailStr = Field(
+        max_length=45, unique=True, index=True, description="email address"
+    )
+    indivname: str = Field(max_length=45, description="full name")
 
 
 class DBUser(UserBase):
     id: Optional[int] = Field(default=None, primary_key=True)
-    hashed_password: Optional[str] = Field(default=None, max_length=60)
-    google_sub: Optional[str] = Field(default=None)
-    profile_img_url: Optional[str] = Field(default=None)
-    disabled: bool = Field(default=False)
+    hashed_password: Optional[str] = Field(
+        default=None, max_length=60, description="only for traditional sign-in"
+    )
+    google_sub: Optional[str] = Field(
+        default=None, description="unique subject identifier from Google OAuth"
+    )
+    profile_img_url: Optional[str] = Field(
+        default=None, description="typically given from Google account"
+    )
+    disabled: bool = Field(default=False, description="status of soft-delete")
 
 
 class User(DBUser, table=True):
@@ -86,7 +94,7 @@ class User(DBUser, table=True):
     __tablename__: ClassVar[str] = "user"
 
     chats: List["Chat"] = Relationship(back_populates="user")
-    odapsets: List["OdapSet"] = Relationship(back_populates="user")
+    resultsets: List["ResultSet"] = Relationship(back_populates="user")
 
 
 class GichulSet(SQLModel, table=True):
@@ -100,14 +108,16 @@ class GichulSet(SQLModel, table=True):
             SQLAlchemyEnum(
                 GichulSetType, values_callable=lambda x: [e.value for e in x]
             )
-        )
+        ),
+        description="시험 종류 | the certification of purpose",
     )
     grade: GichulSetGrade = Field(
         sa_column=Column(
             SQLAlchemyEnum(
                 GichulSetGrade, values_callable=lambda x: [e.value for e in x]
             )
-        )
+        ),
+        description="급수 | grade of the specific exam type",
     )
     year: int
     inning: GichulSetInning = Field(
@@ -115,7 +125,8 @@ class GichulSet(SQLModel, table=True):
             SQLAlchemyEnum(
                 GichulSetInning, values_callable=lambda x: [e.value for e in x]
             )
-        )
+        ),
+        description="회차 | inning of the exam in each year",
     )
 
     qnas: List["GichulQna"] = Relationship(back_populates="gichulset")
@@ -167,7 +178,11 @@ class GichulQnaBase(SQLModel):
     ex3str: Optional[str] = Field(default=None, sa_column=Column(Text))
     ex4str: Optional[str] = Field(default=None, sa_column=Column(Text))
     answer: Optional[str] = Field(default=None, max_length=45)
-    explanation: Optional[str] = Field(default=None, max_length=450)
+    explanation: Optional[str] = Field(
+        default=None,
+        max_length=450,
+        description="explanation from a SOTA or in-house model",
+    )
     gichulset_id: Optional[int] = Field(default=None, foreign_key="gichulset.id")
 
 
@@ -177,13 +192,13 @@ class GichulQna(GichulQnaBase, table=True):
     __tablename__: ClassVar[str] = "gichulqna"
 
     gichulset: Optional[GichulSet] = Relationship(back_populates="qnas")
-    odaps: List["Odap"] = Relationship(back_populates="gichul_qna")
+    results: List["Result"] = Relationship(back_populates="gichul_qna")
 
 
-class OdapSet(SQLModel, table=True):
-    """오답을 생성한 페이지 정보"""
+class ResultSet(SQLModel, table=True):
+    """모의 시험 결과 정보"""
 
-    __tablename__: ClassVar[str] = "odapset"
+    __tablename__: ClassVar[str] = "resultset"
 
     id: Optional[int] = Field(default=None, primary_key=True)
     examtype: ExamType = Field(
@@ -195,24 +210,41 @@ class OdapSet(SQLModel, table=True):
     created_date: Optional[datetime] = Field(
         default=None, sa_column=Column(TIMESTAMP, server_default=func.now())
     )
+    duration_sec: Optional[int] = Field(
+        default=None, description="total time taken to complete the exam session"
+    )
+    total_amount: Optional[int] = Field(
+        default=None, description="the number of questions in the exam session"
+    )
+    total_score: Optional[int] = Field(default=None)
+    passed: bool = Field(
+        default=False, description="whether the user would have passed the exam"
+    )
 
-    user: Optional[User] = Relationship(back_populates="odapsets")
-    odaps: List["Odap"] = Relationship(back_populates="odapset")
+    user: Optional[User] = Relationship(back_populates="resultsets")
+    results: List["Result"] = Relationship(back_populates="resultset")
 
 
-class Odap(SQLModel, table=True):
-    """사용자의 오답 정보 테이블"""
+class Result(SQLModel, table=True):
+    """사용자의 문제 풀이 테이블"""
 
-    __tablename__: ClassVar[str] = "odap"
+    __tablename__: ClassVar[str] = "result"
 
     id: Optional[int] = Field(default=None, primary_key=True)
-    choice: OdapChoice = Field(
+    choice: Optional[ExamChoice] = Field(
+        default=None,
         sa_column=Column(
-            SQLAlchemyEnum(OdapChoice, values_callable=lambda x: [e.value for e in x])
-        )
+            SQLAlchemyEnum(ExamChoice, values_callable=lambda x: [e.value for e in x]),
+            nullable=True,
+        ),
+        description="user selected option",
+    )
+    correct: bool = Field(default=False, description="whether the user was correct")
+    hidden: bool = Field(
+        default=False, description="status of soft-delete of the record"
     )
     gichulqna_id: int = Field(foreign_key="gichulqna.id")
-    odapset_id: Optional[int] = Field(default=None, foreign_key="odapset.id")
+    resultset_id: Optional[int] = Field(default=None, foreign_key="resultset.id")
 
-    gichul_qna: Optional[GichulQna] = Relationship(back_populates="odaps")
-    odapset: Optional[OdapSet] = Relationship(back_populates="odaps")
+    gichul_qna: Optional[GichulQna] = Relationship(back_populates="results")
+    resultset: Optional[ResultSet] = Relationship(back_populates="results")

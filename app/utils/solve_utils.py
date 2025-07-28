@@ -2,6 +2,7 @@ from typing import Dict, Any, List
 from ..core.config import settings
 from ..models import (
     GichulSet,
+    GichulQna,
     GichulSetType,
     GichulSetInning,
     GichulSetGrade,
@@ -48,10 +49,10 @@ def path_getter(directory: str) -> Dict[str, str]:
 
 
 def add_imgPaths_to_questions_if_any(
-    gichulset: GichulSet, path_dict: Dict[str, str]
+    gichulqnalist: List[GichulQna], path_dict: Dict[str, str]
 ) -> List[Dict[str, Any]]:
     # 경로 정보 추가하기 위해 dict로
-    qnas_as_dicts = [qna.model_dump() for qna in gichulset.qnas]
+    qnas_as_dicts = [qna.model_dump() for qna in gichulqnalist]
     pic_marker_reg = re.compile(r"@(\w+)")  # 문항속 @pic 찾기위한 regex
 
     for qna_dict in qnas_as_dicts:

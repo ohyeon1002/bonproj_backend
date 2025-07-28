@@ -1,8 +1,7 @@
 from fastapi import FastAPI
-from .routers import auth, solve, modelcall, cbt, odap, mypage
+from .routers import auth, result, solve, modelcall, cbt, mypage
 from .schemas import RootResponse
 from fastapi.middleware.cors import CORSMiddleware
-from typing import Dict
 
 app = FastAPI(root_path="/api")
 
@@ -22,7 +21,7 @@ app.include_router(modelcall.router)
 
 app.include_router(cbt.router)
 
-app.include_router(odap.router)
+app.include_router(result.router)
 
 app.include_router(mypage.router)
 

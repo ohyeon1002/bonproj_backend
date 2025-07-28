@@ -10,7 +10,7 @@ from ..schemas import CBTResponse
 from ..database import get_db
 from ..models import (
     ExamType,
-    OdapSet,
+    ResultSet,
     User,
     GichulSet,
     GichulSetGrade,
@@ -83,11 +83,11 @@ def get_one_random_qna_set(
             random_set[subject] = qnas_as_dicts
         if current_user is None:
             return CBTResponse(subjects=random_set)
-        new_odapset = OdapSet(examtype=ExamType.cbt, user_id=current_user.id)
-        db.add(new_odapset)
+        new_resultset = ResultSet(examtype=ExamType.cbt, user_id=current_user.id)
+        db.add(new_resultset)
         db.commit()
-        db.refresh(new_odapset)
-        return CBTResponse(odapset_id=new_odapset.id, subjects=random_set)
+        db.refresh(new_resultset)
+        return CBTResponse(odapset_id=new_resultset.id, subjects=random_set)
     except Exception as e:
         print(e)
         raise HTTPException(status_code=418, detail="teapot here")  # 예외처리 미루기

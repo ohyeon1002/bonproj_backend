@@ -2,7 +2,16 @@ from datetime import datetime
 from typing import Optional, List, Literal, Dict
 from pydantic import BaseModel, EmailStr, ConfigDict
 from sqlmodel import SQLModel, Field
-from .models import GichulQnaBase, UserBase, OdapChoice, ExamType, GichulSubject
+from .models import (
+    GichulQnaBase,
+    UserBase,
+    ExamChoice,
+    ExamType,
+    GichulSubject,
+    GichulSet,
+    GichulSetType,
+    GichulSetGrade,
+)
 
 
 # main.py
@@ -68,34 +77,40 @@ class TokenData(BaseModel):
     username: Optional[str] = None
 
 
-# odap
+# result
 class UserSolvedQna(BaseModel):
-    choice: OdapChoice
+    choice: ExamChoice
     gichulqna_id: int
+    answer: ExamChoice
     odapset_id: int
 
 
-class OneOdap(BaseModel):
-    choice: Optional[OdapChoice]
+class OneResult(BaseModel):
+    choice: Optional[ExamChoice] = None
+    answer: ExamChoice
     gichulqna_id: int
 
 
-class ManyOdaps(BaseModel):
+class ManyResults(BaseModel):
     odapset_id: int
-    odaps: List[OneOdap]
+    duration_sec: Optional[int]
+    results: List[OneResult]
 
 
-class OdapsGot(BaseModel):
-    odapset_id: int
+class ResultsGot(BaseModel):
+    resultset_id: int
     created_date: datetime
     exam_type: ExamType
-    odaplist: List[OneOdap]
+    resultlist: List[OneResult]
 
 
 # mypage
+class GichulInfo(SQLModel):
+    type: Optional[GichulSetType]
+    grade: Optional[GichulSetGrade]
 
 
-class GichulQnaInOdap(SQLModel):
+class GichulQnaInResult(SQLModel):
     id: Optional[int]
     subject: GichulSubject
     qnum: Optional[int]
@@ -106,16 +121,18 @@ class GichulQnaInOdap(SQLModel):
     ex4str: Optional[str]
     answer: Optional[str]
     explanation: Optional[str]
+    gichulset: Optional[GichulInfo]
 
 
-class OdapWithGichulQnaInOdapSet(SQLModel):
+class ResultWithGichulQnaInResultSet(SQLModel):
     id: Optional[int]
-    choice: OdapChoice
-    gichul_qna: Optional[GichulQnaInOdap] = None
+    choice: Optional[ExamChoice]
+    # attempt: int
+    gichul_qna: Optional[GichulQnaInResult] = None
 
 
-class OdapSetWithOdap(SQLModel):
+class ResultSetWithResult(SQLModel):
     id: Optional[int]
     examtype: ExamType
     created_date: Optional[datetime]
-    odaps: List[OdapWithGichulQnaInOdapSet] = []
+    results: List[ResultWithGichulQnaInResultSet] = []

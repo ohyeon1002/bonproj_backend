@@ -3,7 +3,7 @@ from sqlmodel import Session
 from fastapi import HTTPException, status
 from ..models import GichulSetType, GichulSetInning, GichulSetGrade, ExamType, User
 from ..utils import solve_utils
-from ..crud import solve_crud, odapset_crud
+from ..crud import resultset_crud, solve_crud
 from ..schemas import SolveResponse, QnaWithImgPaths
 
 
@@ -25,12 +25,14 @@ def retrieve_one_inning(
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND, detail="검색 실패: 기출 문제 없음"
         )
-    new_qnas_list = solve_utils.add_imgPaths_to_questions_if_any(gichulset, path_dict)
+    new_qnas_list = solve_utils.add_imgPaths_to_questions_if_any(
+        gichulset.qnas, path_dict
+    )
     pdt_validated_list = [
         QnaWithImgPaths.model_validate(qna_dict) for qna_dict in new_qnas_list
     ]
     if current_user is None:
         return SolveResponse(qnas=pdt_validated_list)
     assert current_user.id is not None
-    new_odapset = odapset_crud.create_one_odapset(examtype, current_user.id, db)
-    return SolveResponse(odapset_id=new_odapset.id, qnas=pdt_validated_list)
+    new_resultset = resultset_crud.create_one_resultset(examtype, current_user.id, db)
+    return SolveResponse(odapset_id=new_resultset.id, qnas=pdt_validated_list)
