@@ -9,8 +9,6 @@ gemApikey = settings.GEMINI_APIKEY
 
 client = genai.Client(api_key=gemApikey)
 
-client.chats.create
-
 
 async def geminiChat(user_prompt: str):
     modelResponse = await client.aio.models.generate_content_stream(

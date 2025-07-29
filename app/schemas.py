@@ -11,6 +11,7 @@ from .models import (
     GichulSet,
     GichulSetType,
     GichulSetGrade,
+    GichulSetInning,
 )
 
 
@@ -111,8 +112,10 @@ class ModelMaterials(BaseModel):
 
 # mypage
 class GichulInfo(SQLModel):
+    year: Optional[int]
     type: Optional[GichulSetType]
     grade: Optional[GichulSetGrade]
+    inning: Optional[GichulSetInning]
 
 
 class GichulQnaInResult(SQLModel):
@@ -127,6 +130,7 @@ class GichulQnaInResult(SQLModel):
     answer: Optional[str]
     explanation: Optional[str]
     gichulset: Optional[GichulInfo]
+    gichulset_id: Optional[int]
 
 
 class ResultWithGichulQnaInResultSet(SQLModel):

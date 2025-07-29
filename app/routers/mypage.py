@@ -11,7 +11,7 @@ from ..services.result import retrieve_mypage_odaps
 router = APIRouter(prefix="/mypage", tags=["Pull information for my page"])
 
 
-@router.get("/odaps", response_model=List[ResultSetWithResult])
+@router.get("/odaps")
 async def get_mypage_odaps(
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)],

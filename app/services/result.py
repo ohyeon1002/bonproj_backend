@@ -6,6 +6,8 @@ from ..schemas import UserSolvedQna, ManyResults, ResultsGot, OneResult
 from ..models import Result, User
 from ..crud.user_crud import read_one_user
 from ..crud import result_crud, resultset_crud
+from ..utils import result_utils
+from ..utils.solve_utils import path_getter
 
 
 def save_user_solved_qna(submitted_qna: UserSolvedQna, db: Session):
@@ -68,7 +70,9 @@ def retrieve_many_user_saved_qnas(current_user: User, db: Session):
 def retrieve_mypage_odaps(current_user: User, db: Session):
     assert current_user.id is not None
     odapsets = resultset_crud.read_mypage_odaps_in_resultsets(current_user.id, db)
-    return odapsets
+    unique_qnas = result_utils.leave_the_latest_qnas(odapsets)
+    unique_qnas_with_imgPaths = result_utils.append_imgPaths(unique_qnas)
+    return unique_qnas_with_imgPaths
 
 
 def hide_saved_user_qna(id: int, current_user: User, db: Session):
