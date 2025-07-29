@@ -6,6 +6,7 @@ from ..dependencies import get_current_active_user
 from ..models import User
 from ..database import get_db
 from ..services.modelcall import geminiChat, diagReq
+from ..schemas import ModelMaterials
 
 
 router = APIRouter(prefix="/modelcall", tags=["Call Local or External Models"])
@@ -18,10 +19,10 @@ async def modelcall_root(user_prompt: str):
 
 @router.post("/diag")
 async def ai_diagnosis(
-    wrong: str,
-    examresults: str,
+    body: ModelMaterials,
     current_user: Annotated[User, Depends(get_current_active_user)],
 ):
     return StreamingResponse(
-        diagReq(wrong, examresults, current_user), media_type="text/event-stream"
+        diagReq(body.wrong, body.examresults, current_user),
+        media_type="text/event-stream",
     )

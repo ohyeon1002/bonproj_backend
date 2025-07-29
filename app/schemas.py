@@ -104,6 +104,11 @@ class ResultsGot(BaseModel):
     resultlist: List[OneResult]
 
 
+class ModelMaterials(BaseModel):
+    wrong: str
+    examresults: str
+
+
 # mypage
 class GichulInfo(SQLModel):
     type: Optional[GichulSetType]
