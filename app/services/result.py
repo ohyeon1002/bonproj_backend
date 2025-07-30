@@ -5,7 +5,7 @@ from sqlmodel import Session, SQLModel, Field
 from ..schemas import UserSolvedQna, ManyResults, ResultsGot, OneResult
 from ..models import Result, User
 from ..crud.user_crud import read_one_user
-from ..crud import result_crud, resultset_crud
+from ..crud import result_crud, resultset_crud, gichulset_crud
 from ..utils import result_utils
 from ..utils.solve_utils import path_getter
 
@@ -34,9 +34,6 @@ def save_user_solved_many_qnas(
     if resultset_to_update is None:
         raise HTTPException(status_code=404, detail="no such a resultset")
     resultset_to_update.duration_sec = submitted_results.duration_sec
-    # resultset_to_update.total_amount, resultset_to_update.total_score ,resultset_to_update.passed = result_utils.score_answers(submitted_results)
-    # result_utils.score_answers(submitted_results)
-    db.add(resultset_to_update)
     resultlist = [
         Result(
             choice=result.choice,
@@ -47,9 +44,27 @@ def save_user_solved_many_qnas(
         for result in submitted_results.results
     ]
     result_crud.create_many_results(resultlist, db)
+    db.flush()
+    db_resultset = resultset_crud.read_one_resultset_for_score(
+        odapset_id, current_user.id, db
+    )
+    sample_gichulset_id, subject_scores = result_utils.score_answers(db_resultset)
+    sample_gichulset_type = gichulset_crud.read_one_qna_set_type(
+        sample_gichulset_id, db
+    )
+    total_amount, total_score, total_passed, final_subject_scores = (
+        result_utils.check_if_passed(sample_gichulset_type, subject_scores)
+    )
+    db_resultset.total_amount = total_amount
+    db_resultset.total_score = total_score
+    db_resultset.passed = total_passed
     db.commit()
-    # resultset_crud.read_one_resultset_for_score(odapset_id, current_user.id, db)
-    return resultlist
+    return {
+        "total_amount_of_questions": total_amount,
+        "total_score_of_session": total_score,
+        "if_passed_test": total_passed,
+        "subject_scores": final_subject_scores,
+    }
 
 
 def retrieve_many_user_saved_qnas(current_user: User, db: Session):

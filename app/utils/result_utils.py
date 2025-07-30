@@ -1,25 +1,53 @@
 import re
 from collections import defaultdict
 from typing import Sequence, Tuple, List, Dict, Union, Any
-from ..models import GichulSubject, ResultSet
-from ..schemas import ManyResults, ResultSetWithResult
-from .solve_utils import dir_maker, path_getter
+from app.models import GichulSubject, ResultSet, GichulSetType
+from app.schemas import ManyResults, ResultSetWithResult, ResultSetResponse
+from app.utils.solve_utils import dir_maker, path_getter
+
+
+def check_if_passed(
+    sample_gichulset_type: GichulSetType,
+    subject_scores=Dict[Any, Dict[str, Union[int, bool]]],
+):
+    # defaultdict({<GichulSubject.hanghae: '항해'>: {'question_counts': 25, 'correct_counts': 4}, <GichulSubject.unyong: '운용'>: {'question_counts': 25, 'correct_counts': 0}, <GichulSubject.beopgyu: '법규'>: {'question_counts': 25, 'correct_counts': 1}, <GichulSubject.english: '영어'>: {'question_counts': 25, 'correct_counts': 0}, <GichulSubject.sangseon: '상선전문'>: {'question_counts': 25, 'correct_counts': 0}})
+    data = [
+        (value_dict["question_counts"], value_dict["correct_counts"])
+        for value_dict in subject_scores.values()
+    ]
+    total_amount, total_score = tuple(sum(group) for group in zip(*data))
+    for subject, contents in subject_scores.items():
+        if (
+            sample_gichulset_type == GichulSetType.hanghaesa
+            and subject == GichulSubject.beopgyu
+        ):
+            contents["passed"] = contents["correct_counts"] >= 15
+        else:
+            contents["passed"] = contents["correct_counts"] >= 10
+    passed = True
+    if any(not v["passed"] for v in subject_scores.values()):
+        passed = False
+    elif total_score / len(subject_scores) < 15:
+        passed = False
+    return total_amount, total_score, passed, subject_scores
 
 
 def score_answers(
     resultset: ResultSet,
-    correct_answer: Sequence[Tuple[int, GichulSubject, str]],
-):
-    correct_answer_dict = {
-        qna_id: (subject, answer) for qna_id, subject, answer in correct_answer
-    }
-    subject_scores = defaultdict(lambda: {"total": 0, "correct": 0})
-    for user_answer in submitted_qnas.results:
-        subject, right_answer = correct_answer_dict[user_answer.gichulqna_id]
-        subject_scores[subject]["total"] += 1
-        if right_answer == user_answer.choice:
-            subject_scores[subject]["correct"] += 1
-    print(subject_scores)
+) -> Tuple[int, bool, Dict[Any, Dict[str, Union[int, bool]]]]:
+    resultset_dict = ResultSetResponse.model_validate(resultset).model_dump()
+    sample_gichulset_id: int = resultset_dict["results"][0]["gichul_qna"][
+        "gichulset_id"
+    ]
+    subject_scores = defaultdict(
+        lambda: {"question_counts": 0, "correct_counts": 0, "passed": False}
+    )
+    for result in resultset_dict["results"]:
+        result_subject = result["gichul_qna"]["subject"]
+        subject_scores[result_subject]["question_counts"] += 1
+        if result["correct"]:
+            subject_scores[result_subject]["correct_counts"] += 1
+    return sample_gichulset_id, subject_scores
 
 
 def leave_the_latest_qnas(

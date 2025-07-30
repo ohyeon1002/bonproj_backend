@@ -26,7 +26,7 @@ async def save_one_qna(
     return save_user_solved_qna(submitted_qna, db)
 
 
-@router.post("/savemany", response_model=List[Result], status_code=201)
+@router.post("/savemany", status_code=201)
 async def save_many_qnas(
     submitted_qnas: ManyResults,
     current_user: Annotated[User, Depends(get_current_active_user)],

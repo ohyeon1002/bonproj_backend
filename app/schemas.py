@@ -1,6 +1,6 @@
 from datetime import datetime
-from typing import Optional, List, Literal, Dict
-from pydantic import BaseModel, EmailStr, ConfigDict
+from typing import Any, Optional, List, Literal, Dict, Annotated
+from pydantic import BaseModel, BeforeValidator, EmailStr, ConfigDict
 from sqlmodel import SQLModel, Field
 from .models import (
     GichulQnaBase,
@@ -79,16 +79,27 @@ class TokenData(BaseModel):
 
 
 # result
+def strip_if_str(v: Any) -> Any:  # str 공백 제거
+    if isinstance(v, str):
+        return v.strip()
+    return v
+
+
+StrippedExamChoice = Annotated[
+    ExamChoice, BeforeValidator(strip_if_str)
+]  # space가 삽입될 수 있는 Enum 타입에 대해 Enum 유효성 검사 전 str 공백 제거
+
+
 class UserSolvedQna(BaseModel):
-    choice: ExamChoice
+    choice: StrippedExamChoice
     gichulqna_id: int
-    answer: ExamChoice
+    answer: StrippedExamChoice
     odapset_id: int
 
 
 class OneResult(BaseModel):
-    choice: Optional[ExamChoice] = None
-    answer: ExamChoice
+    choice: Optional[StrippedExamChoice] = None
+    answer: StrippedExamChoice
     gichulqna_id: int
 
 
@@ -125,6 +136,7 @@ class GichulQnaResponse(SQLModel):
     ex4str: Optional[str]
     answer: Optional[str]
     explanation: Optional[str]
+    gichulset_id: Optional[int]
 
 
 class ResultResponse(SQLModel):
