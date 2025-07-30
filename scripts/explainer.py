@@ -26,7 +26,7 @@ from google import genai
 from google.genai import types
 
 
-client = genai.Client(api_key="AIzaSyBjj6L3QYSD6HdQ6KoOvpg16hGB-4YoH8k")
+client = genai.Client(api_key="")
 
 
 # --- ✨ 설정값: 안전 마진 대폭 강화 ✨ ---
