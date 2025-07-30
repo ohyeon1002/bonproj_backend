@@ -21,4 +21,9 @@ async def get_mypage_odaps(
 
 @router.get("/cbt_results")
 async def get_mypage_cbt_results():
-    return {"detail": "WIP"}
+    return
+
+
+@router.get("/exam_results")
+def get_mypage_exam_results():
+    return

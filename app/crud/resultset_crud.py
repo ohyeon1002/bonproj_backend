@@ -30,9 +30,29 @@ def read_many_resultsets(user_id: int, db: Session):
 def read_mypage_odaps_in_resultsets(user_id: int, db: Session):
     statement = (
         select(ResultSet)
-        .where(ResultSet.user_id == user_id, ResultSet.results.any())
-        .options(selectinload(ResultSet.results).selectinload(Result.gichul_qna))
+        .where(
+            ResultSet.user_id == user_id, ResultSet.results.any(Result.hidden == False)
+        )
+        .options(
+            selectinload(ResultSet.results)
+            .selectinload(Result.gichul_qna)
+            .selectinload(GichulQna.gichulset)
+        )
         .order_by(ResultSet.id.desc())
     )
     odap_sets = db.exec(statement).all()
     return odap_sets
+
+
+def read_one_resultset_for_score(resultset_id: int, user_id: int, db: Session):
+    statement = (
+        select(ResultSet)
+        .where(
+            ResultSet.id == resultset_id,
+            ResultSet.user_id == user_id,
+            ResultSet.results.any(),
+        )
+        .options(selectinload(ResultSet.results).selectinload(Result.gichul_qna))
+    )
+    resultset_to_score = db.exec(statement).one_or_none()
+    return resultset_to_score

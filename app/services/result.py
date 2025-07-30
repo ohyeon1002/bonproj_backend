@@ -11,6 +11,7 @@ from ..utils.solve_utils import path_getter
 
 
 def save_user_solved_qna(submitted_qna: UserSolvedQna, db: Session):
+    print(submitted_qna.model_dump())
     is_correct = submitted_qna.answer == submitted_qna.choice
     new_result = Result(
         choice=submitted_qna.choice,
@@ -23,26 +24,31 @@ def save_user_solved_qna(submitted_qna: UserSolvedQna, db: Session):
     return new_result
 
 
-def save_user_solved_many_qnas(results: ManyResults, current_user: User, db: Session):
-    if results.duration_sec:
-        resultset_to_update = resultset_crud.read_one_resultset(
-            results.odapset_id, current_user.id, db
-        )
-        if resultset_to_update is None:
-            raise HTTPException(status_code=404, detail="no such a resultset")
-        resultset_to_update.duration_sec = results.duration_sec
-        db.add(resultset_to_update)
+def save_user_solved_many_qnas(
+    submitted_results: ManyResults, current_user: User, db: Session
+):
+    odapset_id = submitted_results.odapset_id
+    resultset_to_update = resultset_crud.read_one_resultset(
+        odapset_id, current_user.id, db
+    )
+    if resultset_to_update is None:
+        raise HTTPException(status_code=404, detail="no such a resultset")
+    resultset_to_update.duration_sec = submitted_results.duration_sec
+    # resultset_to_update.total_amount, resultset_to_update.total_score ,resultset_to_update.passed = result_utils.score_answers(submitted_results)
+    # result_utils.score_answers(submitted_results)
+    db.add(resultset_to_update)
     resultlist = [
         Result(
             choice=result.choice,
             correct=(result.choice == result.answer),
             gichulqna_id=result.gichulqna_id,
-            resultset_id=results.odapset_id,
+            resultset_id=odapset_id,
         )
-        for result in results.results
+        for result in submitted_results.results
     ]
     result_crud.create_many_results(resultlist, db)
     db.commit()
+    # resultset_crud.read_one_resultset_for_score(odapset_id, current_user.id, db)
     return resultlist
 
 

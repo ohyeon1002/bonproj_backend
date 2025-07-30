@@ -7,7 +7,7 @@ from .solve_utils import dir_maker, path_getter
 
 
 def score_answers(
-    submitted_qnas: ManyResults,
+    resultset: ResultSet,
     correct_answer: Sequence[Tuple[int, GichulSubject, str]],
 ):
     correct_answer_dict = {
@@ -19,7 +19,7 @@ def score_answers(
         subject_scores[subject]["total"] += 1
         if right_answer == user_answer.choice:
             subject_scores[subject]["correct"] += 1
-    return subject_scores
+    print(subject_scores)
 
 
 def leave_the_latest_qnas(
@@ -32,12 +32,18 @@ def leave_the_latest_qnas(
     attempts_counts = defaultdict(int)
     for odapset_dict in odapsets_data:
         for result_dict in odapset_dict["results"]:
+            if result_dict["hidden"] or result_dict["correct"]:
+                continue
+            if not result_dict["choice"]:
+                continue
             qna_dict = result_dict["gichul_qna"]
             qna_id = qna_dict["id"]
             attempts_counts[qna_id] += 1
             if qna_id not in unique_qnas:
                 unique_qnas[qna_id] = qna_dict
                 unique_qnas[qna_id]["choice"] = result_dict["choice"]
+                unique_qnas[qna_id]["result_id"] = result_dict["id"]
+                unique_qnas[qna_id]["hidden"] = result_dict["hidden"]
     return [
         {**qna_dict, "attempt_counts": attempts_counts[qna_id]}
         for qna_id, qna_dict in unique_qnas.items()

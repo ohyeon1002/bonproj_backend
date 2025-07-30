@@ -37,7 +37,7 @@ def get_one_random_qna_set(
     *,
     subjects: List[GichulSubject] = Query(),
     db: Annotated[Session, Depends(get_db)],
-    current_user: Annotated[User, Depends(get_optional_current_activate_user)]
+    current_user: Annotated[User, Depends(get_optional_current_activate_user)],
 ):
     try:
         sets = db.exec(
@@ -88,6 +88,8 @@ def get_one_random_qna_set(
         db.commit()
         db.refresh(new_resultset)
         return CBTResponse(odapset_id=new_resultset.id, subjects=random_set)
+    except ValueError as e:
+        raise HTTPException(status_code=404, detail=f"과목 선택 잘못한듯? {e}")
     except Exception as e:
         print(e)
         raise HTTPException(status_code=418, detail="teapot here")  # 예외처리 미루기

@@ -110,6 +110,41 @@ class ModelMaterials(BaseModel):
     examresults: str
 
 
+class QnAInfo(BaseModel):
+    pass
+
+
+class GichulQnaResponse(SQLModel):
+    id: int
+    subject: GichulSubject
+    qnum: Optional[int]
+    questionstr: Optional[str]
+    ex1str: Optional[str]
+    ex2str: Optional[str]
+    ex3str: Optional[str]
+    ex4str: Optional[str]
+    answer: Optional[str]
+    explanation: Optional[str]
+
+
+class ResultResponse(SQLModel):
+    id: int
+    choice: Optional[ExamChoice]
+    correct: bool
+    gichul_qna: GichulQnaResponse
+
+
+class ResultSetResponse(SQLModel):
+    id: int
+    examtype: ExamType
+    created_date: Optional[datetime]
+    duration_sec: Optional[int]
+    total_amount: Optional[int]
+    total_score: Optional[int]
+    passed: bool
+    results: List[ResultResponse]
+
+
 # mypage
 class GichulInfo(SQLModel):
     year: Optional[int]
@@ -135,8 +170,9 @@ class GichulQnaInResult(SQLModel):
 
 class ResultWithGichulQnaInResultSet(SQLModel):
     id: Optional[int]
+    correct: Optional[bool]
     choice: Optional[ExamChoice]
-    # attempt: int
+    hidden: Optional[bool]
     gichul_qna: Optional[GichulQnaInResult] = None
 
 

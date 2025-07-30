@@ -1,7 +1,7 @@
 from typing import Annotated, List
 from fastapi import APIRouter, Depends
 from sqlmodel import Session
-from ..schemas import UserSolvedQna, ManyResults
+from ..schemas import UserSolvedQna, ManyResults, ResultSetResponse
 from ..dependencies import get_current_active_user
 from ..database import get_db
 from ..services.result import (
@@ -11,6 +11,7 @@ from ..services.result import (
     hide_saved_user_qna,
 )
 from ..models import Result, User
+from ..crud.resultset_crud import read_one_resultset_for_score
 
 
 router = APIRouter(prefix="/results", tags=["Save user-solved qnas"])
@@ -41,6 +42,15 @@ async def soft_delete_one_result(
     db: Annotated[Session, Depends(get_db)],
 ):
     return hide_saved_user_qna(result_id, current_user, db)
+
+
+@router.get("/{result_id}", response_model=ResultSetResponse)
+def get_test_result_details(
+    result_id: int,
+    current_user: Annotated[User, Depends(get_current_active_user)],
+    db: Annotated[Session, Depends(get_db)],
+):
+    return read_one_resultset_for_score(result_id, current_user.id, db)
 
 
 # @router.get("/odaplist")
