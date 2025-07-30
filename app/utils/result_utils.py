@@ -1,9 +1,9 @@
 import re
 from collections import defaultdict
-from typing import Sequence, Tuple, List, Dict, Union, Any
-from app.models import GichulSubject, ResultSet, GichulSetType
-from app.schemas import ManyResults, ResultSetWithResult, ResultSetResponse
-from app.utils.solve_utils import dir_maker, path_getter
+from typing import Sequence, Tuple, List, Dict, Union, Any, Optional
+from ..models import GichulSubject, ResultSet, GichulSetType
+from ..schemas import ManyResults, ResultSetWithResult, ResultSetResponse
+from .solve_utils import dir_maker, path_getter
 
 
 def check_if_passed(
@@ -33,12 +33,13 @@ def check_if_passed(
 
 
 def score_answers(
-    resultset: ResultSet,
-) -> Tuple[int, bool, Dict[Any, Dict[str, Union[int, bool]]]]:
+    resultset: ResultSet, is_used_in_mypage: bool = None
+) -> Tuple[Optional[int], Dict[Any, Dict[str, Union[int, bool]]]]:
     resultset_dict = ResultSetResponse.model_validate(resultset).model_dump()
-    sample_gichulset_id: int = resultset_dict["results"][0]["gichul_qna"][
-        "gichulset_id"
-    ]
+    if not is_used_in_mypage:
+        sample_gichulset_id: int = resultset_dict["results"][0]["gichul_qna"][
+            "gichulset_id"
+        ]
     subject_scores = defaultdict(
         lambda: {"question_counts": 0, "correct_counts": 0, "passed": False}
     )
@@ -47,6 +48,8 @@ def score_answers(
         subject_scores[result_subject]["question_counts"] += 1
         if result["correct"]:
             subject_scores[result_subject]["correct_counts"] += 1
+    if is_used_in_mypage:
+        return subject_scores
     return sample_gichulset_id, subject_scores
 
 

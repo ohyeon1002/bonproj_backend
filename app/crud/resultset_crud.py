@@ -56,3 +56,15 @@ def read_one_resultset_for_score(resultset_id: int, user_id: int, db: Session):
     )
     resultset_to_score = db.exec(statement).one_or_none()
     return resultset_to_score
+
+
+def read_many_resultsets_with_results_for_score(
+    examtype: ExamType, user_id: int, db: Session
+):
+    statement = (
+        select(ResultSet)
+        .where(ResultSet.user_id == user_id, ResultSet.examtype == examtype)
+        .options(selectinload(ResultSet.results).selectinload(Result.gichul_qna))
+    )
+    resultsets_to_score = db.exec(statement).all()
+    return resultsets_to_score

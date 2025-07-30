@@ -3,7 +3,16 @@ from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, SQLModel, Field
 from ..schemas import UserSolvedQna, ManyResults, ResultsGot, OneResult
-from ..models import Result, User
+from ..models import (
+    GichulSet,
+    Result,
+    ResultSet,
+    User,
+    ExamType,
+    GichulSetGrade,
+    GichulSetInning,
+    GichulSetType,
+)
 from ..crud.user_crud import read_one_user
 from ..crud import result_crud, resultset_crud, gichulset_crud
 from ..utils import result_utils
@@ -49,17 +58,21 @@ def save_user_solved_many_qnas(
         odapset_id, current_user.id, db
     )
     sample_gichulset_id, subject_scores = result_utils.score_answers(db_resultset)
-    sample_gichulset_type = gichulset_crud.read_one_qna_set_type(
-        sample_gichulset_id, db
-    )
+    sample_gichulset = gichulset_crud.read_one_qna_set(sample_gichulset_id, db)
     total_amount, total_score, total_passed, final_subject_scores = (
-        result_utils.check_if_passed(sample_gichulset_type, subject_scores)
+        result_utils.check_if_passed(sample_gichulset.type, subject_scores)
+    )
+    exam_detail = (
+        f"{sample_gichulset.year}년 {sample_gichulset.inning.value}회차 {sample_gichulset.type.value} {sample_gichulset.grade.value}급"
+        if db_resultset.examtype != ExamType.cbt
+        else f"{sample_gichulset.type.value} {sample_gichulset.grade.value}급 모의 CBT"
     )
     db_resultset.total_amount = total_amount
     db_resultset.total_score = total_score
     db_resultset.passed = total_passed
     db.commit()
     return {
+        "exam_detail": exam_detail,
         "total_amount_of_questions": total_amount,
         "total_score_of_session": total_score,
         "if_passed_test": total_passed,
@@ -105,3 +118,45 @@ def hide_saved_user_qna(id: int, current_user: User, db: Session):
     db.add(result_to_hide)
     db.commit()
     return
+
+
+def _process_single_resultset(
+    iter_resultset: ResultSet, sample_gichulset: GichulSet, db: Session
+):
+    _, subject_scores = result_utils.score_answers(iter_resultset)
+    total_amount, total_score, total_passed, final_subject_scores = (
+        result_utils.check_if_passed(sample_gichulset.type, subject_scores)
+    )
+    exam_detail = (
+        f"{sample_gichulset.year}년 {sample_gichulset.inning.value}회차 {sample_gichulset.type.value} {sample_gichulset.grade.value}급"
+        if iter_resultset.examtype != ExamType.cbt
+        else f"{sample_gichulset.type.value} {sample_gichulset.grade.value}급 모의고사"
+    )
+    return {
+        "result_id": iter_resultset.id,
+        "exam_detail": exam_detail,
+        "total_amount_of_questions": total_amount,
+        "total_score_of_session": total_score,
+        "if_passed_test": total_passed,
+        "subject_scores": final_subject_scores,
+    }
+
+
+def retrieve_session_resultsets(current_user: User, db: Session, is_cbt: bool):
+    examtype = ExamType.cbt if is_cbt else ExamType.real
+    db_resultsets = resultset_crud.read_many_resultsets_with_results_for_score(
+        examtype, current_user.id, db
+    )
+    sample_gichulset_ids = set(
+        [resultset.results[0].gichul_qna.gichulset_id for resultset in db_resultsets]
+    )
+    db_gichulsets = gichulset_crud.read_many_gichulset_by_ids(sample_gichulset_ids, db)
+    gichulsets_dict = {gichulset.id: gichulset for gichulset in db_gichulsets}
+    info_to_return = []
+    for resultset in db_resultsets:
+        gichulset_id = resultset.results[0].gichul_qna.gichulset_id
+        scored_session_details = _process_single_resultset(
+            resultset, gichulsets_dict[gichulset_id], db
+        )
+        info_to_return.append(scored_session_details)
+    return info_to_return

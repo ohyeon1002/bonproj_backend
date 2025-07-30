@@ -1,8 +1,12 @@
+from typing import Optional
 from google import genai
 from google.genai import types
 from textwrap import dedent
+
+from sqlmodel import Session
 from ..models import User
 from ..core.config import settings
+from ..crud import chat_crud
 
 
 gemApikey = settings.GEMINI_APIKEY
@@ -10,17 +14,59 @@ gemApikey = settings.GEMINI_APIKEY
 client = genai.Client(api_key=gemApikey)
 
 
-async def geminiChat(user_prompt: str):
-    modelResponse = await client.aio.models.generate_content_stream(
-        model="gemini-2.5-flash",
-        config=types.GenerateContentConfig(
-            system_instruction="You are an assistant who helps the user get ready for the navigator('해기사') exam. Always answer in Korean. Keep the response below 700 characters long.",
-            temperature=0.3,
-        ),
-        contents=user_prompt,
+async def stream_save_gemini_chat(
+    current_user: Optional[User],
+    user_prompt: Optional[str],
+    img_content: Optional[bytes],
+    img_mime_type: Optional[str],
+    db: Session,
+):
+    prompt_to_save = user_prompt if user_prompt else "[이미지 질문]"
+    new_chat = chat_crud.create_one_chat(current_user, db)
+    user_contents = []
+    new_chat_turn = chat_crud.create_one_chat_turn(
+        chat_id=new_chat.id, prompt=prompt_to_save, db=db
     )
-    async for chunk in modelResponse:
-        yield f"data: {chunk.text}\n\n"
+    new_chat_turn.turn_num = 1 if not new_chat_turn.turn_num else +1
+    if user_prompt:
+        user_contents.append(user_prompt)
+    if img_content:
+        image_blob = types.Blob(mime_type=img_mime_type, data=img_content)
+        image_part = types.Part(inline_data=image_blob)
+        user_contents.append(image_part)
+    if not user_contents:
+        yield "data: 질문이나 이미지를 입력해 주세요.\n\n"
+        return
+    full_response = []
+    try:
+        modelResponse = await client.aio.models.generate_content_stream(
+            model="gemini-2.5-flash",
+            config=types.GenerateContentConfig(
+                system_instruction=dedent(
+                    """   Role: AI assistant for the Korean navigator's exam (해기사).
+                                                Core Instructions:
+                                                    Input: Text only. Action: Answer the user's question.
+                                                    Input: Image only. Action: Provide a detailed description of the image, focusing on maritime elements.
+                                                    Input: Text and Image. Action: Answer the user's question, using the image as the primary context for your response.
+                                                Output Constraints:
+                                                    Language: Must be Korean.
+                                                    Length: Maximum 700 characters."""
+                ),
+                temperature=0.3,
+            ),
+            contents=user_contents,
+        )
+
+        async for chunk in modelResponse:
+            full_response.append(chunk.text)
+            yield f"data: {chunk.text}\n\n"
+    except Exception as e:
+        print(e)
+        yield f"data: 에러 발생 - AI 예외 발생 {e} \n\n"
+
+    final_response_text = "".join(full_response)
+    new_chat_turn.response = final_response_text
+    db.commit()
 
 
 async def diagReq(wrong: str, examresults: str, current_user: User):
@@ -69,3 +115,7 @@ async def diagReq(wrong: str, examresults: str, current_user: User):
 
     async for chunk in modelResponse:
         yield f"data: {chunk.text}\n\n"
+
+
+def retrieve_chat_sessions(current_user: User, db: Session):
+    return chat_crud.read_chats(current_user, db)
