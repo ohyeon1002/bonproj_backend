@@ -85,9 +85,8 @@ def strip_if_str(v: Any) -> Any:  # str 공백 제거
     return v
 
 
-StrippedExamChoice = Annotated[
-    ExamChoice, BeforeValidator(strip_if_str)
-]  # space가 삽입될 수 있는 Enum 타입에 대해 Enum 유효성 검사 전 str 공백 제거
+StrippedExamChoice = Annotated[ExamChoice, BeforeValidator(strip_if_str)]
+# space가 삽입될 수 있는 Enum 타입에 대해 Enum 유효성 검사 전 str 공백 제거
 
 
 class UserSolvedQna(BaseModel):

@@ -73,8 +73,10 @@ def save_user_solved_many_qnas(
     db.commit()
     return {
         "exam_detail": exam_detail,
+        "duration_sec": db_resultset.duration_sec,
         "total_amount_of_questions": total_amount,
-        "total_score_of_session": total_score,
+        "total_correct_counts": total_score,
+        "total_score": total_score * 4,
         "if_passed_test": total_passed,
         "subject_scores": final_subject_scores,
     }
@@ -134,9 +136,11 @@ def _process_single_resultset(
     )
     return {
         "result_id": iter_resultset.id,
+        "duration_sec": iter_resultset.duration_sec,
         "exam_detail": exam_detail,
         "total_amount_of_questions": total_amount,
-        "total_score_of_session": total_score,
+        "total_correct_counts": total_score,
+        "total_score": total_score * 4,
         "if_passed_test": total_passed,
         "subject_scores": final_subject_scores,
     }
@@ -148,7 +152,11 @@ def retrieve_session_resultsets(current_user: User, db: Session, is_cbt: bool):
         examtype, current_user.id, db
     )
     sample_gichulset_ids = set(
-        [resultset.results[0].gichul_qna.gichulset_id for resultset in db_resultsets]
+        [
+            resultset.results[0].gichul_qna.gichulset_id
+            for resultset in db_resultsets
+            if resultset.results[0]
+        ]
     )
     db_gichulsets = gichulset_crud.read_many_gichulset_by_ids(sample_gichulset_ids, db)
     gichulsets_dict = {gichulset.id: gichulset for gichulset in db_gichulsets}

@@ -12,7 +12,7 @@ router = APIRouter(prefix="/mypage", tags=["Pull information for my page"])
 
 
 @router.get("/odaps")
-async def get_mypage_odaps(
+def get_mypage_odaps(
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
@@ -20,7 +20,7 @@ async def get_mypage_odaps(
 
 
 @router.get("/cbt_results")
-async def get_mypage_cbt_results(
+def get_mypage_cbt_results(
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
