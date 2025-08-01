@@ -1,8 +1,0 @@
-DATABASE_URL="mysql+pymysql://bon:abcd@localhost:3306/bonproject"
-GEMINI_APIKEY="AIzaSyBkFmV9RRwHsLJ8VsiMzsU"
-BASE_PATH="C:/Users/user/Downloads/해기사기출DB(2021-2023)"
-SECRET_KEY="56ff52477291f423e4b639b0af767caf62047070476c3"
-GOOGLE_CLIENT_ID="878361365167-2tk6hbj8vre98tn.apps.googleusercontent.com"
-GOOGLE_CLIENT_SECRET="GOCSPX-HVZahtp82Ef1VZo-E"
-GOOGLE_REDIRECT_URI="https://concise-mule-genuinely.ngrok-free.app/api/auth/sign/google"
-FRONTEND_REDIRECT_URI="http://localhost:3000"
