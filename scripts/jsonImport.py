@@ -16,7 +16,7 @@ from app.models import (
 )
 from app.database import engine
 from app.core.config import settings
-from dbcreation import main as dropcreate
+from scripts.dbcreation import main as dropcreate
 from sqlmodel import Session
 from sqlalchemy.engine import Engine
 import re

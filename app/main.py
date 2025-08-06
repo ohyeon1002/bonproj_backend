@@ -1,9 +1,14 @@
-from fastapi import FastAPI
-from .routers import auth, result, solve, modelcall, cbt, mypage
-from .schemas import RootResponse
+from fastapi import FastAPI, Request
+from fastapi.responses import HTMLResponse
+from fastapi.staticfiles import StaticFiles
+from fastapi.templating import Jinja2Templates
+from .routers import auth, result, solve, modelcall, cbt, mypage, page
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI(root_path="/api")
+app = FastAPI()
+
+app.mount("/static", StaticFiles(directory="app/static"), name="static")
+templates = Jinja2Templates(directory="app/templates")
 
 app.add_middleware(
     CORSMiddleware,
@@ -13,22 +18,15 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-app.include_router(auth.router)
-
-app.include_router(solve.router)
-
-app.include_router(modelcall.router)
-
-app.include_router(cbt.router)
-
-app.include_router(result.router)
-
-app.include_router(mypage.router)
+app.include_router(auth.router, prefix="/api")
+app.include_router(solve.router, prefix="/api")
+app.include_router(modelcall.router, prefix="/api")
+app.include_router(cbt.router, prefix="/api")
+app.include_router(result.router, prefix="/api")
+app.include_router(mypage.router, prefix="/api")
+app.include_router(page.router)
 
 
-@app.get("/", response_model=RootResponse)
-def read_root():
-    return {
-        "message": "This is the GET method from the very root end.",
-        "endpoints": "You can call /auth, /solve, /modelcall for practical features",
-    }
+@app.get("/", response_class=HTMLResponse)
+def read_root(request: Request):
+    return templates.TemplateResponse(request, "index.html")
