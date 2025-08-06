@@ -57,6 +57,9 @@ def test_get_one_inning_unsgined_422(client):
 
 
 def test_get_one_inning_signed_200(signed_client):
+    """
+    Emulate a request from a signed user to see if it successfully returns odapset_id.
+    """
     response = signed_client.get(
         "/api/solve/",
         params=solve_params_successful,

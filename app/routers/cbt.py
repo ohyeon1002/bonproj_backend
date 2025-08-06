@@ -89,7 +89,4 @@ def get_one_random_qna_set(
         db.refresh(new_resultset)
         return CBTResponse(odapset_id=new_resultset.id, subjects=random_set)
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=f"과목 선택 잘못한듯? {e}")
-    except Exception as e:
-        print(e)
-        raise HTTPException(status_code=418, detail="teapot here")  # 예외처리 미루기
+        raise HTTPException(status_code=404, detail="과목을 잘못 선택하셨습니다.")

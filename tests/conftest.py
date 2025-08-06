@@ -12,11 +12,9 @@ from app.dependencies import (
 )
 from scripts.jsonImport import insertData
 
-SQLALCHEMY_DATABASE_URL = "sqlite:///./test.db"
+SQLITE_DATABASE_URL = "sqlite:///./test.db"
 
-engine = create_engine(
-    SQLALCHEMY_DATABASE_URL, connect_args={"check_same_thread": False}
-)
+engine = create_engine(SQLITE_DATABASE_URL, connect_args={"check_same_thread": False})
 
 
 def dropcreate():
@@ -77,7 +75,7 @@ def page_client():
 @pytest.fixture(scope="function")
 def client(get_test_db):
     """
-    test client to emulate an unsigned user
+    Test client to emulate an unsigned user.
     """
 
     app.dependency_overrides[get_db] = lambda: get_test_db
@@ -91,7 +89,7 @@ def client(get_test_db):
 @pytest.fixture(scope="function")
 def signed_client(get_test_db):
     """
-    test client to emulate a signed user
+    test client to emulate a signed user.
     """
 
     app.dependency_overrides[get_db] = lambda: get_test_db
