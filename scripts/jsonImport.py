@@ -78,6 +78,7 @@ def insertData(engine: Engine, json_file_path: Path):
                         ex3str=q["ex3Str"],
                         ex4str=q["ex4Str"],
                         answer=q["answer"],
+                        explanation=q["explanation"],
                         gichulset=set,
                     )
                     session.add(qna)
