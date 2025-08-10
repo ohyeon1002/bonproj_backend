@@ -33,6 +33,5 @@ def retrieve_one_inning(
     ]
     if current_user is None:
         return SolveResponse(qnas=pdt_validated_list)
-    assert current_user.id is not None
     new_resultset = resultset_crud.create_one_resultset(examtype, current_user.id, db)
     return SolveResponse(odapset_id=new_resultset.id, qnas=pdt_validated_list)

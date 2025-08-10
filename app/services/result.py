@@ -2,6 +2,7 @@ from collections import defaultdict
 from typing import Annotated, Optional
 from fastapi import APIRouter, Depends, HTTPException
 from sqlmodel import Session, SQLModel, Field
+from sqlalchemy.exc import IntegrityError
 from ..schemas import UserSolvedQna, ManyResults, ResultsGot, OneResult
 from ..models import (
     GichulSet,
@@ -19,14 +20,21 @@ from ..utils import result_utils
 from ..utils.solve_utils import path_getter
 
 
-def save_user_solved_qna(submitted_qna: UserSolvedQna, db: Session):
-    print(submitted_qna.model_dump())
+def save_user_solved_qna(submitted_qna: UserSolvedQna, current_user: User, db: Session):
+    odapset_id = submitted_qna.odapset_id
+    resultset_to_update = resultset_crud.read_one_resultset(
+        odapset_id, current_user.id, db
+    )
+    if resultset_to_update is None:
+        raise HTTPException(
+            status_code=404, detail=f"Resultset with id = {odapset_id} not found"
+        )
     is_correct = submitted_qna.answer == submitted_qna.choice
     new_result = Result(
         choice=submitted_qna.choice,
         correct=is_correct,
         gichulqna_id=submitted_qna.gichulqna_id,
-        resultset_id=submitted_qna.odapset_id,
+        resultset_id=odapset_id,
     )
     result_crud.create_one_result(new_result, db)
     db.commit()
@@ -41,7 +49,9 @@ def save_user_solved_many_qnas(
         odapset_id, current_user.id, db
     )
     if resultset_to_update is None:
-        raise HTTPException(status_code=404, detail="no such a resultset")
+        raise HTTPException(
+            status_code=404, detail=f"Resultset with id = {odapset_id} not found"
+        )
     resultset_to_update.duration_sec = submitted_results.duration_sec
     resultlist = [
         Result(
@@ -104,7 +114,6 @@ def retrieve_many_user_saved_qnas(current_user: User, db: Session):
 
 
 def retrieve_mypage_odaps(current_user: User, db: Session):
-    assert current_user.id is not None
     odapsets = resultset_crud.read_mypage_odaps_in_resultsets(current_user.id, db)
     unique_qnas = result_utils.leave_the_latest_qnas(odapsets)
     unique_qnas_with_imgPaths = result_utils.append_imgPaths(unique_qnas)
@@ -135,7 +144,7 @@ def _process_single_resultset(
         else f"{sample_gichulset.type.value} {sample_gichulset.grade.value}급 모의고사"
     )
     return {
-        "result_id": iter_resultset.id,
+        "resultset_id": iter_resultset.id,
         "duration_sec": iter_resultset.duration_sec,
         "exam_detail": exam_detail,
         "total_amount_of_questions": total_amount,
@@ -155,16 +164,19 @@ def retrieve_session_resultsets(current_user: User, db: Session, is_cbt: bool):
         [
             resultset.results[0].gichul_qna.gichulset_id
             for resultset in db_resultsets
-            if resultset.results[0]
+            if resultset.results
         ]
     )
     db_gichulsets = gichulset_crud.read_many_gichulset_by_ids(sample_gichulset_ids, db)
     gichulsets_dict = {gichulset.id: gichulset for gichulset in db_gichulsets}
     info_to_return = []
     for resultset in db_resultsets:
-        gichulset_id = resultset.results[0].gichul_qna.gichulset_id
-        scored_session_details = _process_single_resultset(
-            resultset, gichulsets_dict[gichulset_id], db
+        gichulset_id = (
+            resultset.results[0].gichul_qna.gichulset_id if resultset.results else None
         )
-        info_to_return.append(scored_session_details)
+        if gichulset_id:
+            scored_session_details = _process_single_resultset(
+                resultset, gichulsets_dict[gichulset_id], db
+            )
+            info_to_return.append(scored_session_details)
     return info_to_return
