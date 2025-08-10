@@ -7,3 +7,4 @@ node_modules/
 *.exe
 test.db
 Procfile
+logs/
