@@ -3,3 +3,8 @@
 __pycache__/
 *.py[cod]
 *$py.class
+node_modules/
+*.exe
+test.db
+Procfile
+logs/

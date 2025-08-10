@@ -5,7 +5,7 @@ from sqlmodel import Session, select
 from collections import defaultdict
 from ..dependencies import get_optional_current_activate_user
 from ..core.config import settings
-from ..utils.solve_utils import path_getter, dir_maker
+from ..utils import solve_utils
 from ..schemas import CBTResponse
 from ..database import get_db
 from ..models import (
@@ -20,15 +20,6 @@ from ..models import (
 
 router = APIRouter(prefix="/cbt", tags=["Randomly Mixed Questions"])
 
-base_path = settings.BASE_PATH
-
-
-def cbt_imgpath_getter(set: GichulSet):
-    directory = dir_maker(
-        year=str(set.year), license=set.type, level=set.grade, round=set.inning
-    )
-    return directory
-
 
 @router.get("/")
 def get_one_random_qna_set(
@@ -40,56 +31,50 @@ def get_one_random_qna_set(
     current_user: Annotated[User, Depends(get_optional_current_activate_user)],
 ):
     try:
+        # 1. 모든 기출 세트(GichulSet)를 가져옵니다.
         sets = db.exec(
             select(GichulSet).where(GichulSet.type == license, GichulSet.grade == level)
-        ).all()  # The list of 12 GichulSet objects
+        ).all()
+
+        # 2. 모든 세트에 대한 이미지 경로를 미리 캐싱합니다.
+        path_cache = {}
+        for s in sets:
+            directory = solve_utils.dir_maker(str(s.year), s.type, s.grade, s.inning)
+            path_cache[s.id] = solve_utils.path_getter(directory)
+
+        # 3. 중복되지 않는 모든 문제를 수집합니다.
         dic = defaultdict(list)
-        random_set = defaultdict()
-        path_dict = {}
-        for set in sets:  # 12개 기출셋 순회
-            dir = cbt_imgpath_getter(set)  # 해당 회차 폴더 정보
-            path_dict[set.id] = path_getter(
-                dir
-            )  # 해당 회차 폴더 속 이미지 파일들 경로 -> path_dict[셋id] = {"@pic땡땡": "경로정보"}
-            for qna in set.qnas:  # qna객체 순회
+        for s in sets:
+            for qna in s.qnas:
                 if qna.questionstr and qna.ex1str:
+                    # 간단한 중복 제거 로직
                     joined_text = " ".join([qna.questionstr, qna.ex1str])
                     if joined_text not in dic[qna.subject]:
-                        dic[qna.subject].append(
-                            qna
-                        )  # 문제+선택지1번이 다른 문항만 추가 Append only question that isn't duplicate
+                        dic[qna.subject].append(qna)
+
+        # 4. 과목별로 문제를 랜덤 샘플링하고 이미지 경로를 추가합니다.
+        random_set = defaultdict()
         for subject in subjects:
-            random_qnas = random.sample(dic[subject], 25)  # 과목별로 25개 뽑기
+            random_qnas = random.sample(dic[subject], 25)
+            qnas_as_dicts = [qna.model_dump() for qna in random_qnas]
 
-            qnas_as_dicts = [
-                qna.model_dump() for qna in random_qnas
-            ]  # solve 속 이미지 경로 뽑는 로직과 대동소이
-            pic_marker_reg = re.compile(r"@(\w+)")
+            # 중앙 유틸리티 함수 호출
+            qnas_with_paths = solve_utils.attach_image_paths(qnas_as_dicts, path_cache)
 
-            for idx, qna_dict in enumerate(qnas_as_dicts):
+            for idx, qna_dict in enumerate(qnas_with_paths):
                 qna_dict["qnum"] = idx + 1
-                full_text = " ".join(
-                    qna_dict.get(key, " ")
-                    for key in ["questionstr", "ex1str", "ex2str", "ex3str", "ex4str"]
-                )
-                found_pics = pic_marker_reg.findall(full_text)
-                if found_pics:
-                    img_paths = [
-                        path_dict[qna_dict["gichulset_id"]][pic_name]
-                        for pic_name in found_pics
-                        if pic_name in path_dict[qna_dict["gichulset_id"]]
-                    ]
-                    qna_dict["imgPaths"] = img_paths
-            random_set[subject] = qnas_as_dicts
+
+            random_set[subject] = qnas_with_paths
+
+        # 5. 최종 응답을 생성합니다.
         if current_user is None:
             return CBTResponse(subjects=random_set)
+
         new_resultset = ResultSet(examtype=ExamType.cbt, user_id=current_user.id)
         db.add(new_resultset)
         db.commit()
         db.refresh(new_resultset)
         return CBTResponse(odapset_id=new_resultset.id, subjects=random_set)
+
     except ValueError as e:
-        raise HTTPException(status_code=404, detail=f"과목 선택 잘못한듯? {e}")
-    except Exception as e:
-        print(e)
-        raise HTTPException(status_code=418, detail="teapot here")  # 예외처리 미루기
+        raise HTTPException(status_code=404, detail="과목을 잘못 선택하셨습니다.")

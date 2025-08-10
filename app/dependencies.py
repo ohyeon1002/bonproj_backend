@@ -11,8 +11,10 @@ from .core.security import SECRET_KEY, ALGORITHM
 from .crud.user_crud import read_one_user
 
 
-oauth2_scheme_strict = OAuth2PasswordBearer(tokenUrl="auth/token")
-oauth2_scheme_optional = OAuth2PasswordBearer(tokenUrl="auth/token", auto_error=False)
+oauth2_scheme_strict = OAuth2PasswordBearer(tokenUrl="api/auth/token")
+oauth2_scheme_optional = OAuth2PasswordBearer(
+    tokenUrl="api/auth/token", auto_error=False
+)
 
 
 async def get_current_user(
@@ -32,7 +34,6 @@ async def get_current_user(
         token_data = TokenData(username=username)
     except InvalidTokenError:
         raise credentials_exception
-    assert token_data.username is not None
     user = read_one_user(token_data.username, db)
     if user is None:
         raise credentials_exception

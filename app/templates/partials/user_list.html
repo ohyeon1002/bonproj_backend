@@ -1,0 +1,23 @@
+<table class="table table-md w-100 table-zebra">
+    <caption class="caption-bottom">The current list of users</caption>
+    <thead>
+        <tr>
+            <th scope="col">username</th>
+            <th scope="col">indivname</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for user in users %}
+        <tr>
+            <th scope="row">{{user.username}}</th>
+            <th>{{user.indivname}}</th>
+        </tr>
+        {% endfor %}
+    </tbody>
+    <tfoot>
+        <tr>
+            <th scope="row">count</th>
+            <th>{{users | length}}</th>
+        </tr>
+    </tfoot>
+</table>

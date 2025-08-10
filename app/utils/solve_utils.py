@@ -47,25 +47,30 @@ def path_getter(directory: str) -> Dict[str, str]:
     return path_dict
 
 
-def add_imgPaths_to_questions_if_any(
-    gichulqnalist: List[GichulQna], path_dict: Dict[str, str]
+def attach_image_paths(
+    qna_dicts: List[Dict], path_cache: Dict[int, Dict[str, str]]
 ) -> List[Dict[str, Any]]:
-    # 경로 정보 추가하기 위해 dict로
-    qnas_as_dicts = [qna.model_dump() for qna in gichulqnalist]
-    pic_marker_reg = re.compile(r"@(\w+)")  # 문항속 @pic 찾기위한 regex
+    pic_marker_reg = re.compile(r"@(\w+)")
 
-    for qna_dict in qnas_as_dicts:
+    for qna_dict in qna_dicts:
+        gichulset_id = qna_dict.get("gichulset_id")
+        if not gichulset_id or gichulset_id not in path_cache:
+            continue
+
+        image_map_for_set = path_cache[gichulset_id]
         full_text = " ".join(
-            qna_dict.get(key, " ")
+            str(qna_dict.get(key, ""))
             for key in ["questionstr", "ex1str", "ex2str", "ex3str", "ex4str"]
         )
-        # 문항 속 문제, 보기 다 합치고 @pic 찾기 -> ['@pic땡땡', ...]
-        found_pics = pic_marker_reg.findall(full_text)
-        if found_pics:
+        found_pic_markers = pic_marker_reg.findall(full_text)
+
+        if found_pic_markers:
             img_paths = [
-                path_dict[pic_name.lower()]
-                for pic_name in found_pics
-                if pic_name.lower() in path_dict
+                image_map_for_set[marker.lower()]
+                for marker in found_pic_markers
+                if marker.lower() in image_map_for_set
             ]
-            qna_dict["imgPaths"] = img_paths  # 해당 문항 속 이미지 경로 정보 추가
-    return qnas_as_dicts
+            if img_paths:
+                qna_dict["imgPaths"] = sorted(list(set(img_paths)))
+
+    return qna_dicts

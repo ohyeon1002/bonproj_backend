@@ -50,9 +50,6 @@ async def get_user_info(
 
 @router.get("/login/google")
 async def login_google():
-    # 구글 로그인 URL 생성
-    # scope는 구글로부터 어떤 정보를 받을지 결정 (openid, email, profile 등)
-
     return RedirectResponse(
         f"https://accounts.google.com/o/oauth2/v2/auth?client_id={google_client_id}&redirect_uri={google_redirect_uri}&response_type=code&scope=openid%20email%20profile"
     )
