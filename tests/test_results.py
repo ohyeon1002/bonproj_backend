@@ -77,7 +77,6 @@ def test_save_many_201(solve_response, signed_client):
     assert response.status_code == 201
     response_data = response.json()
     required_keys = {
-        "resultset_id",
         "exam_detail",
         "duration_sec",
         "total_amount_of_questions",

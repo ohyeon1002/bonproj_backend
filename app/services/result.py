@@ -74,6 +74,7 @@ def save_user_solved_many_qnas(
     db_resultset.total_score = total_score
     db_resultset.passed = total_passed
     db.commit()
+    info_to_return.pop("resultset_id", None)
     return info_to_return
 
 
