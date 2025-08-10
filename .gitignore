@@ -10,3 +10,4 @@ Procfile
 logs/
 app/static
 app/templates
+notebooks/
