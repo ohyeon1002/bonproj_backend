@@ -13,8 +13,8 @@ dictConfig(LOGGING_CONFIG)
 
 app = FastAPI()
 
-app.mount("/static", StaticFiles(directory="app/static"), name="static")
-templates = Jinja2Templates(directory="app/templates")
+# app.mount("/static", StaticFiles(directory="app/static"), name="static")
+# templates = Jinja2Templates(directory="app/templates")
 
 app.add_middleware(
     CORSMiddleware,
@@ -46,9 +46,10 @@ app.include_router(modelcall.router, prefix="/api")
 app.include_router(cbt.router, prefix="/api")
 app.include_router(result.router, prefix="/api")
 app.include_router(mypage.router, prefix="/api")
-app.include_router(page.router)
+# app.include_router(page.router)
 
 
-@app.get("/", response_class=HTMLResponse)
-def read_root(request: Request):
-    return templates.TemplateResponse(request, "index.html")
+@app.get("/")
+def read_root():
+    return "hello"
+    # return templates.TemplateResponse(request, "index.html")
