@@ -41,8 +41,6 @@ fastapi run main/app.py --host 0.0.0.0
 | `│   ├───routers/` | API 엔드포인트(라우터) 정의 |
 | `│   ├───services/` | 비즈니스 로직 처리 계층 |
 | `│   ├───crud/` | 데이터베이스 CRUD 로직 |
-| `│   ├───static/` | CSS, JavaScript, 이미지 등 정적 파일 |
-| `│   ├───templates/` | HTML 템플릿 파일 |
 | `│   └───utils/` | 재사용 가능한 유틸리티 함수 |
 | `├───scripts/` | DB 초기화, 데이터 삽입 등 일회성 스크립트 |
 | `└───tests/` | Pytest를 사용한 테스트 코드 |
