@@ -10,7 +10,7 @@ from ..models import User
 templates = Jinja2Templates(directory="app/templates")
 
 
-router = APIRouter(prefix="/page", tags=["htmx pages"])
+router = APIRouter(prefix="/part", tags=["htmx parts"])
 
 
 @router.get("/test", response_class=HTMLResponse)

@@ -59,20 +59,20 @@ def sign_user_in(form_data: OAuth2PasswordRequestForm, db: Session):
 
 def sign_google_user(id_token_jwt: Union[str, bytes], db: Session):
     try:
-        idinfo = id_token.verify_oauth2_token(
+        id_info = id_token.verify_oauth2_token(
             id_token_jwt,
             google_requests.Request(),
             google_client_id,
         )
-        google_user = user_crud.read_one_google_user(idinfo["sub"], db)
+        google_user = user_crud.read_one_google_user(id_info["sub"], db)
         if google_user is not None:
             db_user = google_user
         else:
             new_user = User(
-                indivname=idinfo["name"],
-                username=idinfo["email"],
-                google_sub=idinfo["sub"],
-                profile_img_url=idinfo["picture"],
+                indivname=id_info["name"],
+                username=id_info["email"],
+                google_sub=id_info["sub"],
+                profile_img_url=id_info["picture"],
             )
             db_user = user_crud.create_one_google_user(new_user, db)
             db.commit()

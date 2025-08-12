@@ -1,4 +1,4 @@
-import logging
+# import logging
 from typing import Annotated, Literal, Optional
 from fastapi import APIRouter, Depends, status, HTTPException
 from fastapi.responses import FileResponse
@@ -12,7 +12,7 @@ from ..services.solve import retrieve_one_inning
 
 router = APIRouter(prefix="/solve", tags=["Provide Gichul QnAs"])
 
-logger = logging.getLogger(__name__)
+# logger = logging.getLogger(__name__)
 
 
 @router.get("/", response_model=SolveResponse)
