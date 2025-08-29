@@ -1,0 +1,19 @@
+<header class="navbar relative z-10 bg-base-100 shadow-sm">
+    <div class="flex-1">
+        <a href="/" class="btn btn-ghost font-bold text-3xl"><span class="text-base-content">Marin</span><span class="text-blue-500">AI</span></a>
+    </div>
+    <div class="flex-none">
+        <ul class="menu menu-horizontal px-1">
+            <li><a href="/chat" role="button" class="btn btn-ghost text-base">AI 질문</a></li>
+            <li><a href="/solve" role="button" class="btn btn-ghost text-base">기출문제</a></li>
+            <li><a href="/cbt" role="button" class="btn btn-ghost text-base">모의고사</a></li>
+            <li><a href="/calendar" role="button" class="btn btn-ghost text-base">시험일정</a></li>
+            {% if user %}
+            <li><a href="/mypage" role="button" class="btn btn-ghost text-base">마이페이지</a></li>
+            <li><button hx-post="/out" role="button" class="btn btn-ghost text-base">로그아웃</button></li>
+            {% else %}
+            <li><a href="/sign" role="button" class="btn btn-ghost text-base">로그인</a></li>
+            {% endif %}
+        </ul>
+    </div>
+</header>

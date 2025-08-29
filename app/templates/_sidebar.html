@@ -1,0 +1,47 @@
+<div class="flex flex-col border border-primary">
+    <form hx-get="/part/solve" hx-target="#question-list" hx-swap="innerHTML" x-data="{ selectedLicense:'' }">
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">시험 연도</legend>
+            <select name="year" class="select">
+                <option disabled selected>선택하세요</option>
+                <option value="2021">2021</option>
+                <option value="2022">2022</option>
+                <option value="2023">2023</option>
+            </select>
+        </fieldset>
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">자격증</legend>
+            <select id="license" name="license" class="select" x-model="selectedLicense">
+                <option disabled selected value="">선택하세요</option>
+                <option value="항해사">항해사</option>
+                <option value="기관사">기관사</option>
+                <option value="소형선박조종사">소형선박조종사</option>
+            </select>
+        </fieldset>
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">급수</legend>
+            <select id="level" name="level" class="select" :disabled="selectedLicense === '소형선박조종사'">
+                <option disabled selected>선택하세요</option>
+                <option value="1">1급</option>
+                <option value="2">2급</option>
+                <option value="3">3급</option>
+                <option value="4">4급</option>
+                <option value="5">5급</option>                
+                <option value="6">6급</option>
+            </select>
+        </fieldset>
+        <input type="hidden" name="level" id="level-hidden" value="0" :disabled="selectedLicense !== '소형선박조종사'">
+        <fieldset class="fieldset">
+            <legend class="fieldset-legend">회차</legend>
+            <select name="round" class="select">
+                <option disabled selected>선택하세요</option>
+                <option value="1">1회</option>
+                <option value="2">2회</option>
+                <option value="3">3회</option>
+                <option value="4">4회</option>
+            </select>
+        </fieldset>
+        
+        <button type="submit" class="btn btn-primary">시험 시작</button>
+    </form>
+</div>
