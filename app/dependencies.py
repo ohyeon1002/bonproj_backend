@@ -86,3 +86,12 @@ async def get_optional_current_activate_user(
     elif current_user.disabled:
         return None
     return current_user
+
+
+async def set_user_in_state(
+    request: Request,
+    current_user: Annotated[
+        Optional[User], Depends(get_optional_current_activate_user)
+    ],
+):
+    request.state.user = current_user

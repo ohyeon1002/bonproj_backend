@@ -1,11 +1,12 @@
 # import logging
 # from logging.config import dictConfig
 import time
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, Depends
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
 from fastapi.middleware.cors import CORSMiddleware
+from .dependencies import set_user_in_state
 from .routers import auth, pages, part, result, solve, modelcall, cbt, mypage
 
 # from .core.logger import LOGGING_CONFIG
@@ -47,10 +48,16 @@ app.include_router(modelcall.router, prefix="/api")
 app.include_router(cbt.router, prefix="/api")
 app.include_router(result.router, prefix="/api")
 app.include_router(mypage.router, prefix="/api")
-app.include_router(part.router)
-app.include_router(pages.router)
+app.include_router(part.router, include_in_schema=False)
+app.include_router(pages.router, include_in_schema=False)
 
 
-@app.get("/", response_class=HTMLResponse)
+@app.get(
+    "/",
+    response_class=HTMLResponse,
+    dependencies=[Depends(set_user_in_state)],
+    include_in_schema=False,
+)
 def read_root(request: Request):
-    return templates.TemplateResponse(request, "index.html")
+    context = {"user": getattr(request.state, "user", None)}
+    return templates.TemplateResponse(request, "index.html", context)

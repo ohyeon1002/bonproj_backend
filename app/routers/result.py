@@ -9,9 +9,9 @@ from ..services.result import (
     save_user_solved_many_qnas,
     retrieve_many_user_saved_qnas,
     hide_saved_user_qna,
+    find_resultset,
 )
 from ..models import Result, User
-from ..crud.resultset_crud import read_one_resultset_for_score
 
 
 router = APIRouter(prefix="/results", tags=["Save user-solved qnas"])
@@ -44,18 +44,13 @@ async def soft_delete_one_result(
     return hide_saved_user_qna(result_id, current_user, db)
 
 
-@router.get("/{resultset_id}", response_model=ResultSetResponse)
+@router.get("/{resultset_id}")
 def get_test_result_details(
     resultset_id: int,
     current_user: Annotated[User, Depends(get_current_active_user)],
     db: Annotated[Session, Depends(get_db)],
 ):
-    resultset = read_one_resultset_for_score(resultset_id, current_user.id, db)
-    if not resultset:
-        raise HTTPException(
-            status_code=404, detail=f"Resultset with id = {resultset_id} not found"
-        )
-    return resultset
+    return find_resultset(resultset_id, current_user, db)
 
 
 # @router.get("/odaplist")

@@ -16,7 +16,7 @@ from ..models import (
 )
 from ..crud.user_crud import read_one_user
 from ..crud import result_crud, resultset_crud, gichulset_crud
-from ..utils import result_utils
+from ..utils import result_utils, solve_utils
 from ..utils.solve_utils import path_getter
 
 
@@ -134,11 +134,14 @@ def _process_single_resultset(
     return (
         {
             "resultset_id": iter_resultset.id,
+            "exam_date": iter_resultset.created_date,
             "duration_sec": iter_resultset.duration_sec,
             "exam_detail": exam_detail,
+            "examtype": iter_resultset.examtype.value,
             "total_amount_of_questions": total_amount,
             "total_correct_counts": total_score,
             "total_score": total_score * 4,
+            "total_average": total_score * 4 / len(subject_scores),
             "if_passed_test": total_passed,
             "subject_scores": final_subject_scores,
         },
@@ -173,3 +176,44 @@ def retrieve_session_resultsets(current_user: User, db: Session, is_cbt: bool):
             )
             info_to_return.append(scored_session_details)
     return info_to_return
+
+
+def find_resultset(resultset_id: int, current_user: User, db: Session):
+    resultset = resultset_crud.read_one_resultset_for_score(
+        resultset_id, current_user.id, db
+    )
+    if not resultset:
+        raise HTTPException(
+            status_code=404, detail=f"Resultset with id = {resultset_id} not found"
+        )
+    if resultset.examtype == ExamType.practice:
+        raise HTTPException(
+            status_code=409, detail="Test detail isn't provided for a practice session"
+        )
+    qnas = [result.gichul_qna.model_dump() for result in resultset.results]
+    if resultset.examtype == ExamType.real:
+        gichulset_id = resultset.results[0].gichul_qna.gichulset_id
+        gichulset = gichulset_crud.read_one_qna_set(gichulset_id, db)
+        directory = solve_utils.dir_maker(
+            gichulset.year, gichulset.type, gichulset.grade, gichulset.inning
+        )
+        path_dict = solve_utils.path_getter(directory)
+        path_cache = {gichulset.id: path_dict}
+        qnas_with_imgs = solve_utils.attach_image_paths(qnas, path_cache)
+    elif resultset.examtype == ExamType.cbt:
+        gichulset_ids = set(
+            [result.gichul_qna.gichulset_id for result in resultset.results]
+        )
+        gichulsets = gichulset_crud.read_many_gichulset_by_ids(gichulset_ids, db)
+        path_cache = {}
+        for gichulset in gichulsets:
+            directory = solve_utils.dir_maker(
+                str(gichulset.year), gichulset.type, gichulset.grade, gichulset.inning
+            )
+            path_cache[gichulset.id] = solve_utils.path_getter(directory)
+        qnas_with_imgs = solve_utils.attach_image_paths(qnas, path_cache)
+    result_info, _, _, _ = _process_single_resultset(resultset, None, db)
+    result_info["results"] = [result.model_dump() for result in resultset.results]
+    for idx, result in enumerate(result_info["results"]):
+        result["gichul_qna"] = qnas_with_imgs[idx]
+    return result_info
