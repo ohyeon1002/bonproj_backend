@@ -9,5 +9,4 @@ test.db
 Procfile
 logs/
 app/static
-app/templates
 notebooks/

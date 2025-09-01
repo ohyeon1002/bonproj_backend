@@ -1,0 +1,15 @@
+{% extends '_base.html' %}{% block content %}
+<form hx-post="/token">
+    <fieldset class="fieldset border p-4 bg-base-200 w-xs rounded-box border-base-300 justify-self-center self-center">
+        <legend class="fieldset-legend">로그인</legend>
+
+        <label for="username" class="label">Email</label>
+        <input id="username" type="email" name="username" class="input" />
+
+        <label for="password" class="label">Password</label>
+        <input id="password" type="password" name="password" class="input" />
+
+        <button type="submit" class="btn btn-neutral mt-4">로그인</button>
+    </fieldset>
+</form>
+{% endblock %}

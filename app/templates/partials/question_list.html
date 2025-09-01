@@ -1,0 +1,29 @@
+<div x-data="{ subject_keys : {{ subject_keys }}, selectedSubject : {{ subject_keys }}[0] }" class="flex flex-col w-full">
+    <div class="flex flex-row self-center">
+        <div class="tabs tabs-box">
+            <template x-for="subject_name in subject_keys">
+                <input type="radio" name="subjectTabs" :aria-label="subject_name" :value="subject_name" x-model="selectedSubject" class="tab" />
+            </template>
+        </div>
+    </div>
+    {% for subject in subject_dict %}
+    <div x-show="selectedSubject === '{{ subject }}'" class="border border-accent">
+        {% for qna in subject_dict[subject] %}
+            <div class="card shadow-sm">
+                <span class="card-title">문제 {{qna.qnum}}</span>
+                <div class="card-body">
+                    <span>{{qna.questionstr}}</span>
+                    {% if qna.imgPaths %}
+                    <img src="/api/solve/img/{{ qna.imgPaths|first }}" class="max-w-full h-auto" />
+                    {% endif %}
+                </div>
+                <form class="card-actions flex flex-col">
+                    {% for option in [qna.ex1str, qna.ex2str, qna.ex3str, qna.ex4str] %}
+                    <input type="button" value="{{ ['가','나','사','아'][loop.index0] }}. {{ option }}" class="btn"/>
+                    {% endfor %}
+                </div>
+            </form>
+        {% endfor %}
+    </div>
+    {% endfor %}
+</div>

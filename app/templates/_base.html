@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>htmx test page</title>
+    <link href="{{url_for('static', path='css/output.css')}}" rel="stylesheet">
+    <link href="{{url_for('static', path='fav.png')}}" rel="icon">
+    <script src="{{url_for('static', path='js/htmx.min.js')}}"></script>
+    <script defer src="{{url_for('static', path='js/alpine.min.js')}}"></script>
+</head>
+<body hx-boost="true" class="flex flex-col w-screen min-h-screen bg-base-100">
+    {% include '_header.html' %}
+    <main class="flex-grow overflow-y-auto w-auto justify-self-center bg-base-100">
+        <div class="container w-auto mx-auto p-4">{% block content %}{% endblock %}</div>
+    </main>
+    {% include '_footer.html' %}
+</body>
+</html>
