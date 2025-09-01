@@ -1,4 +1,4 @@
-<div class="flex flex-col border border-primary">
+<div class="flex flex-col">
     <form hx-get="/part/solve" hx-target="#question-list" hx-swap="innerHTML" x-data="{ selectedLicense:'' }">
         <fieldset class="fieldset">
             <legend class="fieldset-legend">시험 연도</legend>
@@ -41,7 +41,6 @@
                 <option value="4">4회</option>
             </select>
         </fieldset>
-        
-        <button type="submit" class="btn btn-primary">시험 시작</button>
+        <button type="submit" class="btn mt-3 btn-primary">시험 시작</button>
     </form>
 </div>

@@ -61,4 +61,21 @@
     </div>
   </div>
 
+  <form x-data="{
+    theme:localStorage.getItem('theme'),
+    system : null,
+    init() {
+      const mediaQuery = window.matchMedia('(prefers-color-scheme:dark)');
+      this.system = mediaQuery.matches ? 'dark' : 'light';
+      mediaQuery.addEventListener('change', e => {
+        this.system = e.matches ? 'dark' : 'light';
+      });
+    } 
+  }" class="join join-vertical">
+    <input type="radio" @change="localStorage.setItem('theme', 'system'), $el.value=system, document.documentElement.removeAttribute('data-theme')" :checked="theme === $el.value" :value="system"
+            value="system" name="theme-buttons" aria-label="System" class="btn theme-controller join-item" />
+    <input type="radio" @change="localStorage.setItem('theme', $el.value)" :checked="theme === $el.value" name="theme-buttons" aria-label="Light" value="light" class="btn theme-controller join-item" />
+    <input type="radio" @change="localStorage.setItem('theme', $el.value)" :checked="theme === $el.value" name="theme-buttons" aria-label="Dark" value="dark" class="btn theme-controller join-item" />
+  </form>
+
 </footer>
