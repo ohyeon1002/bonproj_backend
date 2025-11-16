@@ -1,36 +1,91 @@
-<div x-data="{ subject_keys : {{ subject_keys }}, selectedSubject : {{ subject_keys }}[0] }" class="flex flex-col gap-3 w-full">
-    <div class="flex flex-row self-center fixed top-0 z-10">
-        <div class="tabs tabs-box">
-            <template x-for="subject_name in subject_keys">
-                <input type="radio" name="subjectTabs" :aria-label="subject_name" :value="subject_name" x-model="selectedSubject" class="tab" />
-            </template>
-        </div>
+<div
+  x-data="{
+    subject_keys : {{ subject_keys }},
+    selectedSubject : {{ subject_keys }}[0],
+    results : [],
+    timerCountDown:7200,
+    init(){
+      Alpine.store('timerCountDown', this.timerCountDown);
+      Alpine.store('results', this.results);
+    } 
+  }"
+  x-ref="questionListStart"
+  class="flex flex-col gap-3 w-full scroll-mt-4">
+  <div class="join join-vertical fixed bottom-60 right-4 lg:right-50 z-10">
+    <div
+      x-init="setInterval(()=>timerCountDown--, 1000)"
+      x-text="`${Number.parseInt(timerCountDown/60)}:${String(timerCountDown%60).padStart(2, '0')}`"
+      class="join-item badge badge-soft badge-xl badge-secondary"></div>
+    <button
+      hx-post="/part/submit"
+      hx-target="#main"
+      hx-ext="json-enc"
+      hx-vals="js:{'odapset_id':{{odapset_id|tojson}}, 'duration_sec':7200-Alpine.store('timerCountDown'), 'results':Alpine.store('results')}"
+      class="join-item btn btn-soft btn-primary">
+      제출
+    </button>
+    <button
+      hx-post="/part/submit"
+      hx-target="#main"
+      hx-ext="json-enc"
+      hx-vals="js:{'odapset_id':{{odapset_id|tojson}},'duration_sec':0,'results':[{'choice':'나','answer':'아','gichulqna_id':9901},{'choice':'나','answer':'가','gichulqna_id':9902},{'choice':'나','answer':'아','gichulqna_id':9903},{'choice':'나','answer':'나','gichulqna_id':9904},{'choice':'나','answer':'아','gichulqna_id':9905},{'choice':'나','answer':'가','gichulqna_id':9906},{'choice':'나','answer':'나','gichulqna_id':9907},{'choice':'나','answer':'아','gichulqna_id':9908},{'choice':'나','answer':'아','gichulqna_id':9909},{'choice':'나','answer':'가','gichulqna_id':9910},{'choice':'나','answer':'아','gichulqna_id':9911},{'choice':'나','answer':'나','gichulqna_id':9912},{'choice':'나','answer':'사','gichulqna_id':9913},{'choice':'나','answer':'가','gichulqna_id':9914},{'choice':'나','answer':'사','gichulqna_id':9915},{'choice':'나','answer':'아','gichulqna_id':9916},{'choice':'나','answer':'가','gichulqna_id':9917},{'choice':'나','answer':'사','gichulqna_id':9918},{'choice':'나','answer':'사','gichulqna_id':9919},{'choice':'나','answer':'아','gichulqna_id':9920},{'choice':'나','answer':'나','gichulqna_id':9921},{'choice':'나','answer':'가','gichulqna_id':9922},{'choice':'나','answer':'가','gichulqna_id':9923},{'choice':'나','answer':'나','gichulqna_id':9924},{'choice':'나','answer':'아','gichulqna_id':9925},{'choice':'나','answer':'가','gichulqna_id':9926},{'choice':'나','answer':'가','gichulqna_id':9927},{'choice':'나','answer':'아','gichulqna_id':9928},{'choice':'나','answer':'가','gichulqna_id':9929},{'choice':'나','answer':'나','gichulqna_id':9930},{'choice':'나','answer':'가','gichulqna_id':9931},{'choice':'나','answer':'아','gichulqna_id':9932},{'choice':'나','answer':'나','gichulqna_id':9933},{'choice':'나','answer':'가','gichulqna_id':9934},{'choice':'나','answer':'나','gichulqna_id':9935},{'choice':'나','answer':'가','gichulqna_id':9936},{'choice':'나','answer':'가','gichulqna_id':9937},{'choice':'나','answer':'사','gichulqna_id':9938},{'choice':'나','answer':'가','gichulqna_id':9939},{'choice':'나','answer':'가','gichulqna_id':9940},{'choice':'나','answer':'사','gichulqna_id':9941},{'choice':'나','answer':'아','gichulqna_id':9942},{'choice':'나','answer':'가','gichulqna_id':9943},{'choice':'나','answer':'사','gichulqna_id':9944},{'choice':'나','answer':'사','gichulqna_id':9945},{'choice':'나','answer':'아','gichulqna_id':9946},{'choice':'나','answer':'사','gichulqna_id':9947},{'choice':'나','answer':'가','gichulqna_id':9948},{'choice':'나','answer':'아','gichulqna_id':9949},{'choice':'나','answer':'사','gichulqna_id':9950},{'choice':'나','answer':'사','gichulqna_id':9951},{'choice':'나','answer':'나','gichulqna_id':9952},{'choice':'나','answer':'아','gichulqna_id':9953},{'choice':'나','answer':'가','gichulqna_id':9954},{'choice':'나','answer':'나','gichulqna_id':9955},{'choice':'나','answer':'사','gichulqna_id':9956},{'choice':'나','answer':'나','gichulqna_id':9957},{'choice':'나','answer':'아','gichulqna_id':9958},{'choice':'나','answer':'가','gichulqna_id':9959},{'choice':'나','answer':'가','gichulqna_id':9960},{'choice':'나','answer':'나','gichulqna_id':9961},{'choice':'나','answer':'아','gichulqna_id':9962},{'choice':'나','answer':'사','gichulqna_id':9963},{'choice':'나','answer':'사','gichulqna_id':9964},{'choice':'나','answer':'아','gichulqna_id':9965},{'choice':'나','answer':'가','gichulqna_id':9966},{'choice':'나','answer':'가','gichulqna_id':9967},{'choice':'나','answer':'나','gichulqna_id':9968},{'choice':'나','answer':'나','gichulqna_id':9969},{'choice':'나','answer':'아','gichulqna_id':9970},{'choice':'나','answer':'아','gichulqna_id':9971},{'choice':'나','answer':'나','gichulqna_id':9972},{'choice':'나','answer':'가','gichulqna_id':9973},{'choice':'나','answer':'나','gichulqna_id':9974},{'choice':'나','answer':'가','gichulqna_id':9975},{'choice':'나','answer':'나','gichulqna_id':9976},{'choice':'나','answer':'아','gichulqna_id':9977},{'choice':'나','answer':'가','gichulqna_id':9978},{'choice':'나','answer':'나','gichulqna_id':9979},{'choice':'나','answer':'아','gichulqna_id':9980},{'choice':'나','answer':'나','gichulqna_id':9981},{'choice':'나','answer':'사','gichulqna_id':9982},{'choice':'나','answer':'아','gichulqna_id':9983},{'choice':'나','answer':'아','gichulqna_id':9984},{'choice':'나','answer':'사','gichulqna_id':9985},{'choice':'나','answer':'가','gichulqna_id':9986},{'choice':'나','answer':'나','gichulqna_id':9987},{'choice':'나','answer':'아','gichulqna_id':9988},{'choice':'나','answer':'나','gichulqna_id':9989},{'choice':'나','answer':'사','gichulqna_id':9990},{'choice':'나','answer':'아','gichulqna_id':9991},{'choice':'나','answer':'아','gichulqna_id':9992},{'choice':'나','answer':'나','gichulqna_id':9993},{'choice':'나','answer':'나','gichulqna_id':9994},{'choice':'나','answer':'나','gichulqna_id':9995},{'choice':'나','answer':'가','gichulqna_id':9996},{'choice':'나','answer':'사','gichulqna_id':9997},{'choice':'나','answer':'나','gichulqna_id':9998},{'choice':'나','answer':'아','gichulqna_id':9999},{'choice':'나','answer':'아','gichulqna_id':10000},{'choice':'나','answer':'사','gichulqna_id':10001},{'choice':'나','answer':'아','gichulqna_id':10002},{'choice':'나','answer':'나','gichulqna_id':10003},{'choice':'나','answer':'사','gichulqna_id':10004},{'choice':'나','answer':'나','gichulqna_id':10005},{'choice':'나','answer':'아','gichulqna_id':10006},{'choice':'나','answer':'나','gichulqna_id':10007},{'choice':'나','answer':'사','gichulqna_id':10008},{'choice':'나','answer':'아','gichulqna_id':10009},{'choice':'나','answer':'아','gichulqna_id':10010},{'choice':'나','answer':'아','gichulqna_id':10011},{'choice':'나','answer':'아','gichulqna_id':10012},{'choice':'나','answer':'사','gichulqna_id':10013},{'choice':'나','answer':'아','gichulqna_id':10014},{'choice':'나','answer':'나','gichulqna_id':10015},{'choice':'나','answer':'아','gichulqna_id':10016},{'choice':'나','answer':'아','gichulqna_id':10017},{'choice':'나','answer':'아','gichulqna_id':10018},{'choice':'나','answer':'아','gichulqna_id':10019},{'choice':'나','answer':'사','gichulqna_id':10020},{'choice':'나','answer':'사','gichulqna_id':10021},{'choice':'나','answer':'사','gichulqna_id':10022},{'choice':'나','answer':'아','gichulqna_id':10023},{'choice':'나','answer':'아','gichulqna_id':10024},{'choice':'나','answer':'나','gichulqna_id':10025}]}"
+      class="join-item btn btn-soft btn-warning">
+      개발
+    </button>
+  </div>
+  <div class="flex flex-row self-center sticky top-0 z-10">
+    <div class="tabs tabs-box shadow-lg shadow-accent/10">
+      <template x-for="subject_name in subject_keys">
+        <input
+          type="radio"
+          name="subjectTabs"
+          :aria-label="subject_name"
+          :value="subject_name"
+          x-model="selectedSubject"
+          @click="$refs.questionListStart.scrollIntoView({behavior:'smooth'})"
+          class="tab" />
+      </template>
     </div>
-    {% for subject in subject_dict %}
-    <div x-show="selectedSubject === '{{ subject }}'">
-        {% for qna in subject_dict[subject] %}
-            {% if not loop.first %}
-                <hr class="text-transparent divider">
-            {% endif %}
-            <div class="card p-5 bg-base-300 text-base-content select-none">
-                <span class="card-title">문제 {{qna.qnum}}</span>
-                <div class="card-body text-lg">
-                    {% if qna.imgPaths %}
-                    <span>{{ qna.questionstr.split('@')[0] }}</span>
-                    <img src="/api/solve/img/{{ qna.imgPaths|first }}" class="justify-self-center max-w-3/4 h-auto" />
-                    {% else %}
-                    <span>{{qna.questionstr}}</span>
-                    {% endif %}
-                    <div class="card-actions flex flex-col mt-5">
-                        {% for option in [qna.ex1str, qna.ex2str, qna.ex3str, qna.ex4str] %}
-                        <button class="btn btn-block min-h-[48px] h-auto bg-base-200 justify-start text-start text-sm text-base-content" >
-                            {{ ['가','나','사','아'][loop.index0] }}. {{ option }}
-                        </button>
-                        {% endfor %}
-                    </div>
-                </div>
-            </div>
-        {% endfor %}
+  </div>
+  {% for subject in subject_dict %} {% set subject_loop_idx = loop.index0 %}
+  <div x-show="selectedSubject === '{{ subject }}'">
+    {% for qna in subject_dict[subject] %} {% set qna_loop_idx = loop.index0 %}
+    {% if not loop.first %}
+    <hr class="text-transparent divider" />
+    {% endif %}
+    <div class="card p-5 bg-base-300 text-base-content select-none">
+      <span class="card-title">문제 {{qna.qnum}}</span>
+      <div class="card-body text-lg">
+        {% if qna.imgPaths %}
+        <span>{{ qna.questionstr.split('@')[0] }}</span>
+        <img
+          src="/api/solve/img/{{ qna.imgPaths|first }}"
+          class="mt-1 justify-self-center self-center max-w-3/4 h-auto" />
+        {% else %}
+        <span>{{qna.questionstr}}</span>
+        {% endif %}
+        <div
+          x-data="{ activeButton : null }"
+          class="card-actions flex flex-col mt-5">
+          {% for option in [qna.ex1str, qna.ex2str, qna.ex3str, qna.ex4str] %}
+          <button
+            x-data="{ idx:{{ subject_loop_idx }} * 25 + {{ qna_loop_idx }} }"
+            @click="if(activeButton !== {{ loop.index }}){
+                            results[idx] = { 'choice':$el.innerHTML.trimStart().at(0), 'answer':'{{ qna.answer }}', 'gichulqna_id':{{ qna.id }} }, activeButton = {{ loop.index }}
+                        }
+                        else {
+                            delete results[idx],
+                            activeButton = null
+                        }"
+            :class="{ 'border-accent shadow-md shadow-accent/30':activeButton === {{ loop.index }} }"
+            class="btn btn-block min-h-[48px] h-auto bg-base-200 justify-start text-start text-sm text-base-content">
+            {{ ['가','나','사','아'][loop.index0] }}. {{ option }}
+          </button>
+          {% endfor %}
+        </div>
+      </div>
     </div>
     {% endfor %}
+  </div>
+  {% endfor %}
 </div>

@@ -1,0 +1,70 @@
+<style>
+  .circular-progress {
+    --size: 150px;
+    --half-size: calc(var(--size) / 2);
+    --stroke-width: 10px;
+    --radius: calc((var(--size) - var(--stroke-width)) / 2);
+    --circumference: calc(var(--radius) * pi * 2);
+    --dash: calc((var(--progress) * var(--circumference)) / 100);
+    animation: progress-animation 1s ease 0s 1 forwards;
+  }
+
+  .circular-progress circle {
+    cx: var(--half-size);
+    cy: var(--half-size);
+    r: var(--radius);
+    stroke-width: var(--stroke-width);
+    fill: none;
+    stroke-linecap: round;
+  }
+
+  .circular-progress circle.bg {
+    stroke: #ddd;
+  }
+
+  .circular-progress circle.fg {
+    transform: rotate(-90deg);
+    transform-origin: var(--half-size) var(--half-size);
+    stroke-dasharray: var(--dash) calc(var(--circumference) - var(--dash));
+    transition: stroke-dasharray 0.3s linear 0s;
+    stroke: #5394fd;
+  }
+
+  @property --progress {
+    syntax: "<number>";
+    inherits: false;
+    initial-value: 0;
+  }
+
+  @keyframes progress-animation {
+    from {
+      --progress: 0;
+    }
+    to {
+      --progress: {{ result.total_correct_counts/125*100 }};
+    }
+  }
+</style>
+<div>this is result page</div>
+<div>{{result}}</div>
+<!-- <div
+  class="radial-progress"
+  style="--value:{{ result.total_correct_counts/125*100 }};"
+  aria-valuenow="{{ result.total_correct_counts/125*100 }}"
+  role="progressbar">
+  {{ result.total_correct_counts }}점
+</div> -->
+<svg width="150" height="150" viewBox="0 0 150 150" class="circular-progress">
+  <circle class="bg"></circle>
+  <circle class="fg"></circle>
+  <text x="50%" y="50%" text-anchor="middle" dominant-baseline="middle">
+    {{ result.total_correct_counts }}점
+  </text>
+</svg>
+<div>{{result.exam_detail}}</div>
+<div>{{result.exam_date}}</div>
+<div>{{result.duration_sec}}</div>
+<div>총 {{result.total_amount_of_questions}} 문제</div>
+<div>{{result.total_correct_counts}}개 맞춤 (총 {{result.total_score}}점)</div>
+<div>평균 {{result.total_average}}점</div>
+<div>시험 합격? {{result.if_passed_test}}</div>

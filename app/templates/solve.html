@@ -1,11 +1,15 @@
 {% extends '_base.html' %}{% block content %}
 <div class="grid grid-cols-[160px_1fr] gap-6 w-full">
-    {% include '_sidebar.html' %}
-    <div id="question-list" class="flex items-center justify-center min-w-0">
-        <div class="card shadow-md bg-base-200">
-            <h3 class="card-title text-base-content">시험 조건 설정</h3>
-            <div class="card-body"><h4 class="text-base-content">연도, 자격증, 급수, 회차를 선택하고 필요한 경우 과목을 선택합니다.</h4></div>
-        </div>
+  {% include '_sidebar.html' %}
+  <div id="question-list" class="flex items-center justify-center min-w-0">
+    <div class="card shadow-md bg-base-200">
+      <h3 class="card-title text-base-content">시험 조건 설정</h3>
+      <div class="card-body">
+        <h4 class="text-base-content">
+          연도, 자격증, 급수, 회차를 선택하고 필요한 경우 과목을 선택합니다.
+        </h4>
+      </div>
     </div>
+  </div>
 </div>
 {% endblock %}
